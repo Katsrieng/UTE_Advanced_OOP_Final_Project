@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% from 'components/macros.html' import icon, badge, heading with context %}
+{% from 'components/macros.html' import icon, badge, heading, vehicle_image with context %}
 
 {% block content %}
 <a class="back-link" href="{{ url_for('web.listing',resource='vehicles') }}">{{ icon('arrow-left') }} Back to vehicles</a>
@@ -17,9 +17,9 @@
 <span>{{ row.year }} COLLECTION</span>
 <span>{{ row.color }}</span>
 </div>
-<img src="{{ url_for('static',filename='images/vehicles/' ~ row.image) }}" alt="{{ row.brand }} {{ row.model }} illustrative preview">
+{{ vehicle_image(row) }}
 <div class="hero-bottom">
-<span>Illustrative vehicle preview</span>{{ icon('car') }}</div>
+<span>{{ 'Vehicle photo' if vehicle_has_photo(row) else 'Illustrative vehicle preview' }}</span>{{ icon('car') }}</div>
 </section>
 <section class="card detail-summary">
 <span class="eyebrow">VEHICLE OVERVIEW</span>

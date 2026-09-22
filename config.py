@@ -7,4 +7,6 @@ class Config:
     DEMO_MODE = True
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
-    MAX_CONTENT_LENGTH = 1024 * 1024
+    MAX_PHOTO_BYTES = 5 * 1024 * 1024
+    # Allow multipart overhead; the photo service enforces the file's 5 MB limit.
+    MAX_CONTENT_LENGTH = 6 * 1024 * 1024
