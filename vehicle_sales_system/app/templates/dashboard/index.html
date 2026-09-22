@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% from 'components/macros.html' import icon, badge, vehicle_cell, heading, chart_card, inventory_card with context %}
+{% from 'components/macros.html' import icon, badge, vehicle_cell, vehicle_image, heading, chart_card, inventory_card with context %}
 
 {% block content %}
 
@@ -41,8 +41,8 @@
 {% if featured %}
 <div class="featured-image">
 <span class="vehicle-year">{{ featured.year }} COLLECTION</span>
-<img src="{{ url_for('static', filename='images/vehicles/' ~ featured.image) }}" alt="{{ featured.color }} {{ featured.brand }} {{ featured.model }} illustration">
-<span class="image-caption">Illustrative vehicle preview</span>
+{{ vehicle_image(featured) }}
+{% if not vehicle_has_photo(featured) %}<span class="image-caption">Illustrative vehicle preview</span>{% endif %}
 </div>
 <div class="featured-info">
 <div class="row-between">

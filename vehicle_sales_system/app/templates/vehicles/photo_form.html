@@ -1,0 +1,23 @@
+{% from 'components/macros.html' import vehicle_image with context %}
+<fieldset class="photo-fieldset">
+  <legend>Vehicle photo <span class="optional-label">Optional</span></legend>
+  <div class="photo-editor" data-photo-editor>
+    <div class="photo-preview">{{ vehicle_image(photo_vehicle, 'photo-preview-image') }}</div>
+    <div class="photo-controls">
+      <label class="btn secondary photo-picker" for="photo">{{ icon('plus') }} Choose Photo
+        <input id="photo" name="photo" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+               aria-describedby="photo-help photo-error photo-selection" {% if errors.get('photo') %}aria-invalid="true"{% endif %}>
+      </label>
+      <p id="photo-help" class="field-help">JPG, JPEG, PNG or WebP · Maximum 5 MB<br>Photos are saved when you save the vehicle.</p>
+      <p id="photo-selection" class="field-help" role="status">{{ 'Current vehicle photo' if vehicle_has_photo(photo_vehicle) else 'Default vehicle illustration' }}</p>
+      <button class="btn ghost small" type="button" data-clear-photo hidden>Cancel selection</button>
+      {% if item_id and vehicle_has_photo(photo_vehicle) %}
+      <button class="btn danger small" type="button" data-remove-photo
+              data-remove-url="{{ url_for('web.remove_vehicle_photo', item_id=item_id) }}">Remove Photo</button>
+      <noscript><p class="field-help">Enable JavaScript to confirm photo removal.</p></noscript>
+      {% endif %}
+    </div>
+  </div>
+  <p id="photo-error" class="field-error" role="alert">{{ errors.get('photo', '') }}</p>
+  {% if errors %}<p class="field-help">If you chose a new photo, select it again before saving. The current photo has not changed.</p>{% endif %}
+</fieldset>

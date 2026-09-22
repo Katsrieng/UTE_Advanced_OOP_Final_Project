@@ -483,3 +483,68 @@ input[type=radio],input[type=checkbox] {
 .report-filters>small {
   font-size:10px;
 }
+
+/* Vehicle photo editor reuses the standard form and button tokens. */
+.optional-label {
+  margin-left:8px;
+  color:var(--text-muted);
+  font-size:10px;
+  font-weight:400;
+  text-transform:none;
+  letter-spacing:0;
+}
+.photo-editor {
+  display:grid;
+  grid-template-columns:minmax(0, 240px) minmax(0, 1fr);
+  gap:24px;
+  align-items:center;
+}
+.photo-preview {
+  background:var(--image-bg);
+  border:1px solid var(--border);
+  border-radius:var(--radius-md);
+  overflow:hidden;
+  width:100%;
+  aspect-ratio:4 / 3;
+}
+.photo-preview .photo-preview-image {
+  width:100%;
+  height:100%;
+  object-fit:contain;
+}
+.photo-controls {
+  min-width:0;
+}
+.photo-controls p {
+  line-height:1.8;
+  overflow-wrap:anywhere;
+  margin:10px 0;
+}
+.photo-picker {
+  position:relative;
+  overflow:hidden;
+}
+.photo-picker input[type=file] {
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  opacity:0;
+  cursor:pointer;
+}
+.photo-picker:focus-within {
+  outline:3px solid var(--accent);
+  outline-offset:3px;
+}
+.photo-fieldset>.field-error {
+  margin-top:12px;
+}
+@media (max-width:600px) {
+  .photo-editor {
+    grid-template-columns:1fr;
+    gap:16px;
+  }
+  .photo-preview {
+    max-width:360px;
+  }
+}

@@ -4,3 +4,5 @@ __pycache__/
 .env
 instance/
 .pytest_cache/
+app/static/uploads/vehicles/*
+!app/static/uploads/vehicles/.gitkeep

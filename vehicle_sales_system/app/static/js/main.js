@@ -79,9 +79,11 @@
   };
   document.querySelectorAll('[data-dismiss]').forEach(button => button.addEventListener('click', () => button.closest('.alert').remove()));
   document.querySelectorAll('[data-toast]').forEach(alert => { window.toast(alert.firstChild.textContent.trim(), alert.dataset.toast); alert.remove(); });
-  window.confirmAction = message => new Promise(resolve => {
+  window.confirmAction = (message, options = {}) => new Promise(resolve => {
     const dialog = document.querySelector('#confirmation');
     document.querySelector('#confirmation-message').textContent = message;
+    document.querySelector('#confirmation-title').textContent = options.title || 'Confirm action';
+    dialog.querySelector('[value="confirm"]').textContent = options.confirmLabel || 'Confirm';
     dialog.returnValue = '';
     dialog.addEventListener('close', () => resolve(dialog.returnValue === 'confirm'), { once: true });
     dialog.showModal();
@@ -99,12 +101,13 @@
   }));
   window.addEventListener('pageshow', () => document.querySelectorAll('.loading').forEach(button => { button.classList.remove('loading'); button.disabled = false; button.removeAttribute('aria-busy'); }));
   document.querySelector('#form-errors')?.focus();
-  document.querySelectorAll('img[src*="/images/vehicles/"]').forEach(image => {
+  document.querySelectorAll('img[data-image-fallback], img[src*="/images/vehicles/"]').forEach(image => {
     const fallback = () => {
       if (image.dataset.fallback) return;
       image.dataset.fallback = 'true';
-      image.src = image.src.replace(/\/[^/]+$/, '/sedan.svg');
-      if (image.alt) image.alt = 'Vehicle illustration unavailable; generic vehicle preview';
+      image.src = image.dataset.imageFallback || image.src.replace(/\/[^/]+$/, '/sedan.svg');
+      image.classList.remove('is-photo');
+      if (image.alt) image.alt = 'Generic vehicle illustration';
     };
     image.addEventListener('error', fallback);
     if (image.complete && !image.naturalWidth) fallback();

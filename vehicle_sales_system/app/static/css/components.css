@@ -921,6 +921,28 @@ dialog p {
   }
 }
 
+.vehicle-cell .vehicle-image.is-photo,
+.featured-image .vehicle-image.is-photo {
+  object-fit:cover;
+}
+.vehicle-hero>.vehicle-image {
+  width:100%;
+  height:340px;
+  object-fit:contain;
+}
+.vehicle-hero>.vehicle-image.is-photo {
+  padding:0 20px;
+  border-radius:var(--radius-md);
+}
+.option-image>.vehicle-image {
+  width:100%;
+  height:150px;
+  object-fit:contain;
+}
+.option-image>.vehicle-image.is-photo {
+  object-fit:cover;
+}
+
 @keyframes toast-in {
   from {
     transform:translateY(10px);

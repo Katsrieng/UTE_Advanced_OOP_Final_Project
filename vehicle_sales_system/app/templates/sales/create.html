@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% from 'components/macros.html' import icon, badge, heading, csrf with context %}
+{% from 'components/macros.html' import icon, badge, heading, csrf, vehicle_image with context %}
 
 {% block content %}
 <a class="back-link" href="{{ url_for('web.listing',resource='sales') }}">{{ icon('arrow-left') }} Back to sales</a>
@@ -85,7 +85,7 @@
 <label class="vehicle-option selection-card" data-search="{{ (v.brand ~ ' ' ~ v.model ~ ' ' ~ v.vin ~ ' ' ~ v.year)|lower }}">
 <input type="radio" name="vehicle_id" value="{{ v.id }}" data-name="{{ v.brand }} {{ v.model }}" data-price="{{ v.price }}" data-vin="{{ v.vin }}">
 <div class="option-image">
-<img src="{{ url_for('static',filename='images/vehicles/' ~ v.image) }}" alt="Illustrative {{ v.brand }} {{ v.model }} preview">{{ badge(v.status) }}</div>
+{{ vehicle_image(v) }}{{ badge(v.status) }}</div>
 <div class="option-info">
 <small>{{ v.year }} · {{ v.fuel }}</small>
 <h3>{{ v.brand }} {{ v.model }}</h3>

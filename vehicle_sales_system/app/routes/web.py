@@ -4,6 +4,7 @@ import math
 import secrets
 from flask import Blueprint, current_app, render_template, request, redirect, url_for, session, flash, abort
 from app.services.sales import SalesService
+from app.services.vehicle_photos import PhotoError, VehiclePhotoService
 
 bp = Blueprint('web', __name__)
 navigation = [('Main', [('dashboard', 'Dashboard', 'grid', None)]), ('Management', [('vehicles', 'Vehicles', 'car', 'vehicles.view'), ('inventory', 'Inventory', 'box', 'inventory.view'), ('customers', 'Customers', 'people', 'customers.view'), ('sales', 'Sales', 'chart', 'sales.view'), ('invoices', 'Invoices', 'file', 'invoices.view')]), ('Analytics', [('reports', 'Reports', 'chart', 'reports.view')]), ('Administration', [('users', 'Users', 'people', 'users.manage'), ('roles', 'Roles & Permissions', 'shield', 'roles.manage')])]
@@ -11,6 +12,14 @@ navigation = [('Main', [('dashboard', 'Dashboard', 'grid', None)]), ('Management
 
 def repo():
     return current_app.extensions['repository']
+
+
+def photo_service():
+    return VehiclePhotoService(repo(), current_app.static_folder, current_app.config['MAX_PHOTO_BYTES'])
+
+
+def vehicle_image_url(vehicle):
+    return url_for('static', filename=photo_service().image_path(vehicle))
 
 
 def current_user():
@@ -217,12 +226,33 @@ def form(resource, item_id=None):
                         if resource == 'vehicles':
                             values.update(image='sedan.svg', mileage=0, fuel='Not specified')
                     values['updated'] = str(date.today())
-                    row = repo().save(resource, values, item_id)
-                    flash(f"{RESOURCES[resource]['singular']} {'updated' if item_id else 'added'} successfully.", 'success')
-                    return redirect(url_for('web.listing', resource=resource) if resource in ('inventory', 'users') else url_for('web.details', resource=resource, item_id=row['id']))
+                    try:
+                        row = (photo_service().save_vehicle(values, item_id, request.files.get('photo'))
+                               if resource == 'vehicles' else repo().save(resource, values, item_id))
+                    except PhotoError as exc:
+                        errors['photo'] = str(exc)
+                    else:
+                        flash(f"{RESOURCES[resource]['singular']} {'updated' if item_id else 'added'} successfully.", 'success')
+                        return redirect(url_for('web.listing', resource=resource) if resource in ('inventory', 'users') else url_for('web.details', resource=resource, item_id=row['id']))
     if resource == 'inventory' and request.args.get('vehicle_id') and not request.method == 'POST':
         values['vehicle_id'] = request.args['vehicle_id']
-    return render_template('shared/form.html', title=f"{'Edit' if item_id else 'Add'} {RESOURCES[resource]['singular']}", active=resource, resource=resource, fields=FIELDS[resource], values=values, errors=errors, options=options)
+    return render_template('shared/form.html', title=f"{'Edit' if item_id else 'Add'} {RESOURCES[resource]['singular']}", active=resource, resource=resource, fields=FIELDS[resource], values=values, errors=errors, options=options, photo_vehicle=original or {}, item_id=item_id)
+
+
+@bp.post('/vehicles/<int:item_id>/photo/remove')
+@require('vehicles.update')
+def remove_vehicle_photo(item_id):
+    if not repo().get('vehicles', item_id):
+        abort(404)
+    if request.form.get('confirm_remove') != 'yes':
+        return render_template('errors/photo_confirmation.html', title='Confirm photo removal', active='vehicles', item_id=item_id), 400
+    try:
+        photo_service().save_vehicle({'updated': str(date.today())}, item_id, remove=True)
+    except PhotoError as exc:
+        flash(str(exc), 'error')
+    else:
+        flash('Photo removed. The vehicle is unchanged and now uses the default image.', 'success')
+    return redirect(url_for('web.form', resource='vehicles', item_id=item_id))
 
 
 @bp.get('/<resource>/<int:item_id>')

@@ -9,7 +9,7 @@
 {% endcall %}
 
 <div class="form-layout">
-<form class="card record-form" method="post" data-validate>{{ csrf() }}
+<form class="card record-form" method="post" {% if resource == 'vehicles' %}enctype="multipart/form-data"{% endif %} data-validate>{{ csrf() }}
 {% if errors %}
 <div class="alert error" role="alert" tabindex="-1" id="form-errors">
 <strong>Check the highlighted fields.</strong>
@@ -17,6 +17,9 @@
 </div>
 {% endif %}
 
+{% if resource == 'vehicles' %}
+{% include 'vehicles/photo_form.html' %}
+{% endif %}
 {% for section, fieldset in fields %}
 <fieldset>
 <legend>{{ section }}</legend>
@@ -90,4 +93,10 @@ aria-invalid="true"
 <small>Changes in this demo last until the server restarts.</small>
 </aside>
 </div>
+{% endblock %}
+
+{% block page_js %}
+{% if resource == 'vehicles' %}
+<script src="{{ url_for('static', filename='js/vehicles.js') }}" defer></script>
+{% endif %}
 {% endblock %}
