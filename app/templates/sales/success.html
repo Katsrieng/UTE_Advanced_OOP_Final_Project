@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% from 'components/macros.html' import icon with context %}
+
+{% block content %}
+<section class="card success-card">
+<span class="success-symbol">{{ icon('check') }}</span>
+<span class="eyebrow">ANOTHER GREAT HANDOVER</span>
+<h1>Sale Completed</h1>
+<p>The vehicle is sold, stock is updated, and the invoice is ready.</p>
+<div class="success-receipt">
+<div>
+<span>Sale ID</span>
+<strong>{{ sale.code }}</strong>
+</div>
+<div>
+<span>Total</span>
+<strong>{{ sale.total|money }}</strong>
+</div>
+</div>
+<div class="success-checks">
+<span>{{ icon('check') }} Vehicle marked Sold</span>
+<span>{{ icon('check') }} Stock-out recorded</span>
+<span>{{ icon('check') }} Invoice generated</span>
+</div>
+<div class="form-actions">
+<a class="btn secondary" href="{{ url_for('web.listing',resource='sales') }}">Back to Sales</a>
+{% if invoice %}
+<a class="btn primary" href="{{ url_for('web.details',resource='invoices',item_id=invoice.id) }}">{{ icon('file') }} View Invoice</a>
+{% endif %}
+</div>
+</section>
+{% endblock %}

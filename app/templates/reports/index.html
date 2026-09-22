@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% from 'components/macros.html' import icon, heading, chart_card, inventory_card, badge with context %}
+
+{% block content %}
+
+{% call heading('Reports', 'A clearer view of how your dealership is performing.') %}
+<span class="date-chip">{{ icon('calendar') }} {{ start }} — {{ end }}</span>
+{% endcall %}
+<form class="card report-filters" method="get">
+<label for="period">Reporting period</label>
+<select name="period" id="period">
+<option value="today" {{ 'selected' if period == 'today' }}>Today</option>
+<option value="7" {{ 'selected' if period == '7' }}>7 days</option>
+<option value="30" {{ 'selected' if period == '30' }}>30 days</option>
+<option value="custom" {{ 'selected' if period == 'custom' }}>Custom</option>
+</select>
+<label class="inline-date">From<input type="date" name="from" value="{{ start }}">
+</label>
+<label class="inline-date">To<input type="date" name="to" value="{{ end }}">
+</label>
+<button class="btn primary">Apply period</button>
+<small>Choose Custom to use the dates.</small>
+</form>
+{% if error %}
+<div class="alert error" role="alert">{{ error }}</div>
+{% endif %}
+<div class="kpi-grid">
+{% for label,value,detail,symbol in [('Sales revenue',revenue|money,'Selected period','wallet'),('Completed sales',sales_count,'Selected period','check'),('Available inventory',counts.AVAILABLE,'Current stock · not date filtered','car'),('Stock movements',movements|length,'Selected period','box')] %}
+<section class="card kpi">
+<div class="kpi-top">
+<span>{{ label }}</span>
+<span class="icon-tile purple">{{ icon(symbol) }}</span>
+</div>
+<strong>{{ value }}</strong>
+<p>{{ detail }}</p>
+</section>
+{% endfor %}
+</div>
+<div class="dashboard-grid">{{ chart_card(chart,revenue,'Selected-period revenue within the last 6 months') }}{{ inventory_card(counts,total_vehicles) }}</div>
+<section class="card">
+<div class="card-heading">
+<div>
+<h2>Stock movement summary</h2>
+<p>Activity within the selected period</p>
+</div>
+</div>
+<div class="movement-summary">
+{% for kind in ['STOCK_IN','STOCK_OUT','ADJUSTMENT'] %}
+<div>{{ badge(kind) }}<strong>{{ movements|selectattr('movement','equalto',kind)|list|length }}</strong>
+<span>recorded movements</span>
+</div>
+{% endfor %}
+</div>
+</section>
+{% endblock %}
+
+{% block page_js %}
+<script src="{{ url_for('static',filename='js/dashboard.js') }}" defer>
+</script>
+{% endblock %}
