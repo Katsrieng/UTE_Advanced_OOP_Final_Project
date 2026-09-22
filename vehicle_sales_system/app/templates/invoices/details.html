@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% from 'components/macros.html' import icon, heading with context %}
+
+{% block content %}
+<div class="no-print">
+<a class="back-link" href="{{ url_for('web.listing',resource='invoices') }}">{{ icon('arrow-left') }} Back to invoices</a>
+{% call heading('Invoice details', 'A complete record of your vehicle sale.') %}
+<button class="btn primary" data-print>{{ icon('print') }} Print Invoice</button>
+{% endcall %}
+</div>
+<article class="invoice-document">
+<div class="invoice-header">
+<div class="invoice-brand">
+<img src="{{ url_for('static',filename='images/branding/mark.svg') }}" width="40" height="40" alt="">
+<div>
+<strong>{{ brand }}</strong>
+<small>Vehicle Inventory & Sales Management</small>
+</div>
+</div>
+<div>
+<h1>INVOICE</h1>
+<p>{{ row.code }}</p>
+</div>
+</div>
+<div class="invoice-meta">
+<div>
+<span>BILL TO</span>
+<h3>{{ row.customer.name }}</h3>
+<p>{{ row.customer.address }}<br>{{ row.customer.email }}<br>{{ row.customer.phone }}</p>
+</div>
+<dl>
+<div>
+<dt>Issue date</dt>
+<dd>{{ row.date }}</dd>
+</div>
+<div>
+<dt>Sale reference</dt>
+<dd>{{ sale.code }}</dd>
+</div>
+<div>
+<dt>Currency</dt>
+<dd>USD</dd>
+</div>
+</dl>
+</div>
+<table class="invoice-table">
+<thead>
+<tr>
+<th>Description</th>
+<th>Quantity</th>
+<th>Amount</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<strong>{{ row.vehicle.brand }} {{ row.vehicle.model }} · {{ row.vehicle.year }}</strong>
+<small>VIN: {{ row.vehicle.vin }}</small>
+<small>Vehicle code: {{ row.vehicle.code }}</small>
+</td>
+<td>1</td>
+<td>{{ sale.price|money }}</td>
+</tr>
+</tbody>
+</table>
+<div class="invoice-totals">
+<div>
+<span>Subtotal</span>
+<strong>{{ sale.price|money }}</strong>
+</div>
+<div>
+<span>Discount</span>
+<strong>−{{ sale.discount|money }}</strong>
+</div>
+<div class="invoice-grand">
+<span>Total</span>
+<strong>{{ sale.total|money }}</strong>
+</div>
+</div>
+<div class="invoice-footer">
+<strong>Thank you for choosing {{ brand }}.</strong>
+<p>Enjoy the road ahead.</p>
+<small>Development demo invoice · Not a tax invoice. Taxes and dealership legal details must be configured before production use.</small>
+</div>
+</article>
+{% endblock %}
