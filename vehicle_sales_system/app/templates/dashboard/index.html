@@ -4,7 +4,7 @@
 
 {% block content %}
 
-{% call heading('Dashboard', 'A concise overview of inventory and sales performance.') %}
+{% call heading('Dashboard', '') %}
 <div class="heading-actions">
 <span class="date-chip">{{ icon('calendar') }} {{ today.strftime('%b %d, %Y') }}</span>
 {% if can('sales.create') %}
@@ -13,12 +13,6 @@
 </div>
 {% endcall %}
 
-<div class="welcome-strip">
-<span>
-<i class="live-dot">
-</i> YOUR BUSINESS AT A GLANCE</span>
-<span>Welcome back, {{ user.name.split()[0] }}. Let's keep things moving.</span>
-</div>
 <div class="kpi-grid">
 {% for label, value, symbol, detail, cls in [('Total vehicles',total_vehicles,'car','Across your entire fleet','purple'),('Available vehicles',counts.AVAILABLE,'key','Ready for their next owner','green'),('Sold vehicles',counts.SOLD,'check','Successfully handed over','blue'),('Sales revenue',revenue|money,'wallet','All completed sales · USD','amber')] %}
 <section class="card kpi">

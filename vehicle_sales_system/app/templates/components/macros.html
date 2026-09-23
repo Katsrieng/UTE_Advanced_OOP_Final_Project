@@ -46,7 +46,7 @@
 <div>
 <div class="eyebrow">WORKSPACE <span>/</span> {{ title }}</div>
 <h1>{{ title }}</h1>
-<p>{{ description }}</p>
+{% if description %}<p>{{ description }}</p>{% endif %}
 </div>{{ caller() if caller is defined }}</div>
 {%- endmacro %}
 

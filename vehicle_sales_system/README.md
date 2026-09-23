@@ -75,26 +75,43 @@ Uploads are publicly served static assets and excluded from Git. Back up both th
 ## Architecture
 
 ```text
-app.py                         Local entry point
-config.py                      Environment/session/photo configuration
-app/database.py                Connection ownership, transactions, safe DB errors
-app/models/entities.py         Decimal money and SaleAmounts domain object
-app/repositories/entities.py   EntityRepository and eight concrete repositories
-app/repositories/mysql.py      Repository facade, SQL lists/history/analytics
-app/services/auth.py          AuthService and UserService
-app/services/inventory.py     InventoryService
-app/services/sales.py         Atomic SalesService
-app/services/vehicle_photos.py VehiclePhotoService and safe upload lifecycle
-app/routes/web.py              Existing URLs, validation, auth/RBAC boundaries
-app/templates/                 Existing Jinja shell and module pages
-app/static/                    CSS tokens, responsive/print rules, JS, images
-database/                     Schema, lookup seeds, editable sample data, setup
-tests/                        Application/photo/MySQL/setup verification
+app.py                              Local entry point
+config.py                           Environment/session/photo configuration
+app/database.py                     Connections and shared transactions
+app/models/                         User, Role, Permission, Vehicle, Customer,
+                                    Sale, StockMovement, Invoice, money rules
+app/repositories/base.py            Shared SQL CRUD and record mapping
+app/repositories/*_repository.py    Entity queries and report aggregation
+app/repositories/mysql.py           Repository collection, joins and pagination
+app/services/*_service.py           Authentication, users, vehicles, customers,
+                                    inventory, sales, reports and photo lifecycle
+app/routes/__init__.py              Register the existing web blueprint
+app/routes/*_routes.py              Feature request handlers
+app/routes/shared_routes.py         Existing resource URL dispatch
+app/routes/form_helpers.py          Shared form parsing and validation
+app/routes/resource_config.py       Existing form fields and table metadata
+app/routes/common.py                Request access checks, CSRF and navigation
+app/templates/                      Existing Jinja templates (unchanged)
+app/static/                         Existing CSS, JS and assets (unchanged)
+database/                           Explicit schema and seed commands
+tests/                              Application, photo and MySQL regression tests
 ```
 
-Repositories encapsulate parameterized SQL and map schema columns to the existing template dictionary contract. Services coordinate business operations through the shared Database transaction abstraction. One connection is reused per Flask request and closed on teardown; standalone operations own and close their connections. List queries use SQL WHERE/ORDER BY/LIMIT/OFFSET with eight rows per page. The obsolete in-memory repository has been removed.
+Routes parse requests and call services; services coordinate business operations
+through repositories. Repositories own SQL and map results through explicit domain
+dataclasses back to the existing template dictionaries. The `MySQLRepository`
+collection shares one `Database` transaction across participating repositories.
 
-The dark/light theme, responsive sidebar, accessible forms, shared lists, confirmation dialogs and sale stepper are preserved. `variables.css` contains design tokens. The sale stepper and photo removal confirmation require JavaScript.
+The shared listing, form and details routes preserve all `web.*` endpoint names,
+URL paths, template fields and error messages. Feature modules handle their own
+save operations and detail context without duplicating the common forms. No image
+entity or association class is needed: photos remain paths on vehicles, and role
+associations remain repository-managed joins.
+
+Sales retain the same row locks and atomic sale/stock/invoice transaction. Vehicle
+photo cleanup still happens after commit. Authentication, permissions and all
+frontend files are unchanged. Compatibility names used in browser storage, demo
+passwords, test database prefixes and seed locks are deliberately retained.
 
 ## Tests
 

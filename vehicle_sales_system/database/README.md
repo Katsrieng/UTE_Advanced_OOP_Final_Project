@@ -59,3 +59,31 @@ To intentionally rebuild development records after editing the sample definition
 The Flask factory uses `MySQLRepository` exclusively. `.env` is loaded automatically; server environment variables take precedence. Application startup never creates, seeds or resets a database. Run setup explicitly before starting Flask. Database rows and relative photo paths persist across process restarts; back up both MySQL and `app/static/uploads/vehicles/`.
 
 Integration tests opt in with `RUN_MYSQL_TESTS=1`. They connect only to MySQL 8 on port 3307, create randomly named `autovault_test_*` databases and drop only those databases. The account needs CREATE/DROP database privileges for this test strategy. Never point tests at a production server.
+
+## Clean existing sample identifiers without a reset
+
+From the application directory, preview first, then apply:
+
+```powershell
+..\venv\Scripts\python.exe database/migrate_identifiers.py
+..\venv\Scripts\python.exe database/migrate_identifiers.py --apply
+```
+
+Run this migration before attempting to reseed an older database. It recognizes
+legacy sample VINs, plates, phone placeholders, sale codes and invoice numbers.
+It updates matching sale movement descriptions using the sale's vehicle, staff,
+and date. It does not delete rows, change IDs/foreign keys, reseed accounts, or
+rewrite unrelated user-entered identifiers. Existing non-demo `SAL-*` sale codes
+and newly generated sales retain their current application convention.
+
+All changes commit in one transaction. Conflicting identifiers stop the migration;
+no records are overwritten to resolve a collision. The default command is a
+read-only preview. Applying saves old/new field values and row IDs in an ignored
+`instance/identifier-migration-<timestamp>.json` audit file before committing.
+Keep that file for recovery; reverse only its recorded fields after checking for
+subsequent edits. Repeating a completed migration makes no further changes.
+
+New sample definitions use `VEH-001`, `SALE-000001`, `INV-000001`, plates such as
+`1A-0001`, and unbranded, fictional 17-character VIN-like values. These VIN-like
+values are test fixtures, not claims of real-world vehicle registration. Internal
+compatibility keys and existing login passwords are unchanged.
