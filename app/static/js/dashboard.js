@@ -8,7 +8,7 @@
     return node;
   };
   document.querySelectorAll('[data-chart]').forEach(host => {
-    const points = JSON.parse(host.dataset.chart), svg = host.querySelector('svg');
+    const points = JSON.parse(host.dataset.chart).map(p => ({...p, value: Number(p.value)})), svg = host.querySelector('svg');
     const left = 52, right = 697, top = 20, bottom = 260;
     const max = Math.max(10000, Math.ceil(Math.max(...points.map(p => p.value)) / 10000) * 10000);
     for (let i = 0; i <= 4; i++) {

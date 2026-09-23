@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="{{ url_for('static', filename='images/branding/ignite-logo.png') }}" type="image/png">
 <title>Sign in · {{ brand }}</title>
 <script src="{{ url_for('static', filename='js/theme.js') }}">
 </script>
@@ -14,7 +15,7 @@
 <main class="login-layout">
 <section class="login-story">
 <a class="brand" href="{{ url_for('web.login') }}">
-<img src="{{ url_for('static', filename='images/branding/mark.svg') }}" alt="" width="40" height="40">{{ brand }}</a>
+<img src="{{ url_for('static', filename='images/branding/ignite-logo.png') }}" class="login-logo" alt="{{ brand }}" width="220" height="147"></a>
 <div class="story-copy">
 <div class="eyebrow">BUILT FOR YOUR NEXT MILE</div>
 <h1>Your inventory.<br>Your business.<br>
@@ -32,6 +33,7 @@
 </span>
 </button>
 <div class="login-form">
+<img class="login-mobile-logo" src="{{ url_for('static', filename='images/branding/ignite-logo.png') }}" alt="{{ brand }}" width="140" height="93">
 <span class="eyebrow">WELCOME TO {{ brand|upper }}</span>
 <h2>Welcome back.</h2>
 <p>Sign in to your dealership workspace.</p>
@@ -50,13 +52,6 @@
 <button class="btn primary login-submit">Sign in to workspace <span>→</span>
 </button>
 </form>
-<div class="demo-credentials">
-<strong>Explore the demo</strong>
-<p>Username: <code>alex</code>, <code>jordan</code>, or <code>sam</code>
-<br>Password: <code>autovault-demo</code>
-</p>
-<small>Admin, Manager, and Sales Staff respectively.<br>Demo records reset when the server restarts.</small>
-</div>
 <p class="login-note">University project · Development workspace</p>
 </div>
 </section>

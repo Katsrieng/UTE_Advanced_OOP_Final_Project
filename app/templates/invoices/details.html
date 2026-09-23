@@ -12,7 +12,7 @@
 <article class="invoice-document">
 <div class="invoice-header">
 <div class="invoice-brand">
-<img src="{{ url_for('static',filename='images/branding/mark.svg') }}" width="40" height="40" alt="">
+<img src="{{ url_for('static',filename='images/branding/ignite-logo.png') }}" class="invoice-logo" width="110" height="73" alt="{{ brand }} logo">
 <div>
 <strong>{{ brand }}</strong>
 <small>Vehicle Inventory & Sales Management</small>
@@ -81,7 +81,7 @@
 <div class="invoice-footer">
 <strong>Thank you for choosing {{ brand }}.</strong>
 <p>Enjoy the road ahead.</p>
-<small>Development demo invoice · Not a tax invoice. Taxes and dealership legal details must be configured before production use.</small>
+<small>Development invoice · Not a tax invoice. Taxes and dealership legal details must be configured before production use.</small>
 </div>
 </article>
 {% endblock %}

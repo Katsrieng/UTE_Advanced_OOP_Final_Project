@@ -714,3 +714,27 @@
     flex-basis:100%;
   }
 }
+
+/* IGNITE wordmark: retain the existing shell and compact navigation rail. */
+.brand-logo { width:150px; max-width:100%; height:auto; object-fit:contain; }
+.brand-compact { display:none; font-size:28px; color:var(--text-primary); }
+.login-logo { width:220px; max-width:100%; height:auto; object-fit:contain; }
+.invoice-brand .invoice-logo { width:110px; height:auto; object-fit:contain; }
+.sidebar-collapsed .sidebar .brand-logo { display:none; }
+.sidebar-collapsed .sidebar .brand-compact { display:block; }
+@media (min-width:769px) and (max-width:1050px) {
+  .sidebar .brand-logo { display:none; }
+  .sidebar .brand-compact { display:block; }
+}
+@media (max-width:768px) {
+  .sidebar-collapsed .sidebar .brand-logo { display:block; }
+  .sidebar-collapsed .sidebar .brand-compact { display:none; }
+  .invoice-brand .invoice-logo { width:70px; }
+}
+@media print { .invoice-brand .invoice-logo { width:90px; height:auto; } }
+
+
+.login-mobile-logo { display:none; }
+@media (max-width:768px) {
+  .login-mobile-logo { display:block; width:140px; height:auto; margin:0 0 20px; }
+}

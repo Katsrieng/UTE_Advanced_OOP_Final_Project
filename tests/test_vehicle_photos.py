@@ -9,8 +9,11 @@ from PIL import Image
 from app import create_app
 
 
-class VehiclePhotoTests(TestCase):
+from mysql_support import MySQLTestCase
+
+class VehiclePhotoTests(MySQLTestCase):
     def setUp(self):
+        super().setUp()
         self.temp = TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
@@ -18,7 +21,7 @@ class VehiclePhotoTests(TestCase):
         placeholders.mkdir(parents=True)
         for name in ('sedan.svg', 'suv.svg'):
             (placeholders / name).write_text('<svg xmlns="http://www.w3.org/2000/svg"/>')
-        self.app = create_app({'TESTING': True, 'SECRET_KEY': 'photo-test'})
+        self.app = create_app(self.app_config())
         self.app.static_folder = str(self.root)
         self.client = self.app.test_client()
         self.repo = self.app.extensions['repository']
@@ -118,7 +121,7 @@ class VehiclePhotoTests(TestCase):
         outside = self.root / 'do-not-delete.png'
         outside.write_bytes(b'protected')
         for path in ('sedan.svg', 'suv.svg', '../../do-not-delete.png', 'uploads/vehicles/../../do-not-delete.png', str(outside)):
-            self.repo.get('vehicles', 1)['image'] = path
+            self.repo.save('vehicles', {'image': path}, 1)
             self.post('/vehicles/1/photo/remove', {'confirm_remove': 'yes'})
         self.assertTrue(outside.exists())
         self.assertTrue((self.root / 'images/vehicles/sedan.svg').exists())
@@ -151,7 +154,7 @@ class VehiclePhotoTests(TestCase):
 
     def test_shared_upload_not_deleted_while_referenced(self):
         old = self.upload_existing()
-        self.repo.get('vehicles', 2)['image'] = old
+        self.repo.save('vehicles', {'image': old}, 2)
         self.post('/vehicles/1/photo/remove', {'confirm_remove': 'yes'})
         self.assertTrue((self.root / old).exists())
         self.post('/vehicles/2/photo/remove', {'confirm_remove': 'yes'})
@@ -159,7 +162,8 @@ class VehiclePhotoTests(TestCase):
 
     def test_photo_urls_render_on_all_vehicle_surfaces(self):
         stored = self.upload_existing()
-        for url in ('/', '/vehicles', '/vehicles/1', '/vehicles/1/edit', '/sales/new'):
+        self.repo.db.execute("UPDATE vehicles SET status='INACTIVE' WHERE vehicle_id<>1 AND status='AVAILABLE'")
+        for url in ('/', '/vehicles?status=AVAILABLE', '/vehicles/1', '/vehicles/1/edit', '/sales/new'):
             response = self.client.get(url)
             self.assertEqual(response.status_code, 200)
             self.assertIn('/static/' + stored, response.text, url)
@@ -168,7 +172,7 @@ class VehiclePhotoTests(TestCase):
             self.assertEqual(response.mimetype, 'image/png')
 
     def test_missing_path_falls_back_server_side(self):
-        self.repo.get('vehicles', 1)['image'] = 'uploads/vehicles/vehicle_' + 'a'*32 + '.png'
+        self.repo.save('vehicles', {'image': 'uploads/vehicles/vehicle_' + 'a'*32 + '.png'}, 1)
         response = self.client.get('/vehicles/1')
         self.assertIn('/static/images/vehicles/sedan.svg', response.text)
         self.assertNotIn('src="/static/uploads/', response.text)
@@ -182,7 +186,7 @@ class VehiclePhotoTests(TestCase):
     def test_huge_request_has_branded_error(self):
         response = self.post('/vehicles/1/edit', {'photo': (BytesIO(b'x' * (7*1024*1024)), 'large.png')})
         self.assertEqual(response.status_code, 413)
-        self.assertIn('AutoVault', response.text)
+        self.assertIn('IGNITE', response.text)
         self.assertIn('5 MB', response.text)
 
     def test_upload_form_is_multipart_and_shows_current_photo(self):
@@ -213,5 +217,20 @@ class VehiclePhotoTests(TestCase):
         with patch.object(Image.Image, 'save', fail_save):
             response = self.post('/vehicles/1/edit', dict(self.fields(self.repo.get('vehicles', 1)), photo=upload))
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.repo.get('vehicles', 1)['image'], old)
+        self.assertEqual(self.uploaded_files(), [self.root / old])
+
+    def test_commit_failure_rolls_back_photo_and_preserves_old_file(self):
+        from flask import g
+        from werkzeug.datastructures import FileStorage
+        from app.services.vehicle_photos import VehiclePhotoService, PhotoError
+        old = self.upload_existing()
+        stream, filename = self.image('WEBP')
+        with self.app.test_request_context():
+            self.repo.get('vehicles', 1)  # Open the request-owned connection.
+            with patch.object(g.database_connection, 'commit', side_effect=OSError('injected commit failure')):
+                with self.assertRaises(PhotoError):
+                    VehiclePhotoService(self.repo, self.root, 5*1024*1024).save_vehicle(
+                        {}, 1, FileStorage(stream=stream, filename=filename))
         self.assertEqual(self.repo.get('vehicles', 1)['image'], old)
         self.assertEqual(self.uploaded_files(), [self.root / old])

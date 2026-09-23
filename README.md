@@ -1,115 +1,118 @@
-# AutoVault
+# IGNITE
 
-**Vehicle Inventory and Sales Management System for SMEs** — a university Advanced Object-Oriented Programming project.
+**Vehicle Inventory and Sales Management System for SMEs** — Advanced Object-Oriented Programming university project.
 
-A responsive, dark-first dealership workspace built with Python, Flask, Jinja2, CSS custom properties, and vanilla JavaScript. No frontend framework, build process, external fonts, CDN, or chart dependency is required.
+Flask, Jinja, responsive CSS and vanilla JavaScript with **MySQL persistence**. Vehicles, photo paths, customers, users, permissions, stock movements, sales and invoices survive application restarts. No ORM, frontend framework or build process is required.
 
-## Run locally
+## Windows setup
 
-From this directory in PowerShell:
+Prerequisites: Python 3.11+ and MySQL 8.0.16+ (verified with MySQL 8.0.46). This computer uses **localhost:3307**, database **VehicleSalesDB**, user **root**. Do not use XAMPP MariaDB on port 3306.
+
+Run from the project directory containing `app.py`:
 
 ```powershell
-# The existing virtual environment already contains Flask.
+python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
+# Fresh clone only: do not overwrite an existing .env.
+Copy-Item .env.example .env
+```
+
+Edit local `.env`: set `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` and a random `SECRET_KEY`. The password belongs only in this ignored file. Generate a session secret with:
+
+```powershell
+.\.venv\Scripts\python.exe -c "import secrets; print(secrets.token_hex(32))"
+```
+
+Paste that generated value into `SECRET_KEY`, then initialize and run:
+
+```powershell
+.\.venv\Scripts\python.exe database/setup.py
 .\.venv\Scripts\python.exe app.py
 ```
 
-Open http://127.0.0.1:5000. On a fresh machine, install Python 3.11+ and run `python -m venv .venv` first. The server binds only to the local machine and does not enable the debugger.
+Open [IGNITE](http://127.0.0.1:5000). The local server binds to loopback with debug disabled. To use the verification port instead:
 
-| Username | Role | Password |
+```powershell
+.\.venv\Scripts\python.exe -m flask --app app:create_app run --host 127.0.0.1 --port 5002
+```
+
+**The database does not need to exist.** Setup connects to MySQL without selecting a database and applies `database/schema.sql`, including `CREATE DATABASE IF NOT EXISTS`, before seeding. The setup account needs CREATE/table privileges. `.env` loads automatically; explicit process environment variables take precedence. Startup never creates, seeds or resets records.
+
+`SECRET_KEY` is required. `SESSION_COOKIE_SECURE=1` enables HTTPS-only cookies when deployed behind HTTPS; leave it unset for local HTTP. Cookies are HttpOnly and SameSite=Lax. See [database setup](database/README.md) for schema-only, seed-only and guarded development reset commands.
+
+## Development data and accounts
+
+Fresh seeding creates 20 vehicles, 12 fictional customers, three users/roles, eight completed sales, eight invoices and 31 stock movements. Records include available/reserved/sold/inactive vehicles and sales across several months. Generic local SVG illustrations require no uploads.
+
+| Username | Role | Development-only password |
 | --- | --- | --- |
-| `alex` | Admin | `autovault-demo` |
-| `jordan` | Manager | `autovault-demo` |
-| `sam` | Sales Staff | `autovault-demo` |
+| `katsrieng` | Admin | `autovault-demo` |
+| `sopanha` | Manager | `autovault-demo` |
+| `sovanara` | Sales Staff | `autovault-demo` |
 
-**This is a development demo.** All records, new accounts, and permission edits are held in server memory and reset when the server restarts. The shared password and default secret are for local demonstrations only. `.env.example` documents configuration; `.env` is not automatically loaded. Set `SECRET_KEY` in the environment for a non-default secret.
+Passwords are hashed before database insertion. New accounts require their own password. Sample definitions are centralized in the clearly marked lists at the top of `database/seed.py`; role/permission lookup data is in `database/seed.sql`. Rerunning setup preserves existing records, passwords and edited grants. Inconsistent existing sample sales cause a clear conflict error and roll back the seed. No automatic startup reset exists. The local verification also leaves clearly named `VERIFY-*` vehicle/customer records and their completed sale.
 
-## Pages and behavior
+## Application behavior
 
-- **Dashboard:** live demo totals, six-month SVG revenue chart with keyboard-accessible values, available featured vehicle, recent sales, inventory breakdown.
-- **Vehicles:** search, brand/status/year filters, pagination, create/edit, details, stock history. Change status through Edit; sold status is assigned by Sales.
-- **Customers:** contact search, create/edit, customer profile, purchase history.
-- **Sales:** searchable history, customer → available vehicle → review workflow, discount validation, confirmation dialog, success page and sale details.
-- **Invoices:** searchable list, white invoice document, Print Invoice with A4 print CSS that removes application navigation.
-- **Inventory:** movement history, search/type/date filters, stock in/out and adjustment form.
-- **Reports:** Today/7 Days/30 Days/Custom filters, period totals, monthly sales, current inventory and stock movement summary. Inventory is a current snapshot; the chart displays the last six calendar months of selected-period sales.
-- **Users:** create/edit, assign a role, activate/deactivate. Historical users are retained. Newly created demo accounts use the shared demo password.
-- **Roles & Permissions:** data-driven role selection and editable grouped permissions. Admin permissions and self-demotion are protected in the demo.
-- **Login and errors:** password visibility, inline login errors, reusable 403/404/500 screens.
+- Dashboard and reports use SQL counts, sums, status breakdowns and monthly aggregation. Reports support Today, 7 Days, 30 Days and Custom. Inventory is a current snapshot; the chart shows the last six calendar months within the selected period.
+- Vehicles and customers support creation, details, editing, search, filtering, pagination and deactivation. Historical records are retained. Vehicle registration establishes its initial status; explicit Inventory movements record later stock transitions and notes. Sold vehicle identity/price/status are protected.
+- Inventory supports STOCK_IN (inactive to available), STOCK_OUT (to inactive) and ADJUSTMENT (note without status change). Signed quantities remain +1, -1 and 0 to preserve the existing UI.
+- Sales lock the active user, customer and available vehicle inside one MySQL transaction. Sale creation, SOLD status, STOCK_OUT and exactly one invoice commit together. Failure rolls back all writes; row locks and unique constraints prevent double sales.
+- Invoices retain Decimal amounts and the existing printable layout. The invoice remains a development document, without configured taxes or dealership legal details.
+- Users support password hashing, role assignment and activation. Authorization joins active users, roles and permissions on every request. The schema supports multiple roles and combines their permissions; the existing account editor assigns one role. Admin grants, self-demotion and removal of the last active administrator are protected.
+- Forms keep submitted values on validation errors. CSRF, server-side permission checks, parameterized SQL, constrained fields and database uniqueness/FKs provide validation boundaries. Database outages return a friendly 503 without raw SQL or credentials.
 
-The topbar search currently searches vehicles by name, VIN or code. Notifications show an empty state; there is no notification backend. Amounts are illustrative USD values. The two bundled SVG vehicle illustrations are generic local placeholders, not photographs of the named models. Missing vehicle images fall back to a generic illustration.
+The topbar search searches vehicles. Notifications retain their empty state. New sales complete immediately; pending/cancelled filters are present but no cancellation workflow is implemented.
 
 ## Vehicle photos
 
-Create or edit a vehicle to choose an optional JPG/JPEG, PNG or WebP photo (maximum 5 MB and 20 million pixels). The form previews the selected image before saving; canceling the selection restores the current preview. Saving without a new file preserves the existing photo. **Remove Photo** asks for confirmation and removes only the photo, retaining the vehicle; it requires JavaScript.
+Create/edit supports optional JPEG, PNG and WebP up to 5 MB and 20 million pixels. Images are decoded, checked against their extensions, oriented, resized to fit 1920 × 1920 and re-encoded without metadata; animated files are rejected. Preview, cancel selection, replacement, confirmed removal and fallback illustrations retain their existing UI.
 
-Images are decoded and checked against their extension, oriented, resized to fit 1920 � 1920, and re-encoded without metadata. Animated images are rejected. Files use generated UUID names under `app/static/uploads/vehicles/`; only a relative path is stored in the existing `image` field. Uploaded files are ignored by Git; `.gitkeep` retains the directory. These static files are publicly accessible to anyone who can reach the server.
+Generated UUID filenames live under `app/static/uploads/vehicles/`; MySQL stores only the relative `image_path`. No-upload edits preserve the old photo. Old files are removed only **after database commit**, if no other vehicle references them. Failed writes clean up new files when safe. Uncertain/failed cleanup is logged and may require maintenance. Bundled illustrations and paths outside the upload directory cannot be deleted by photo cleanup.
 
-A replacement is saved before the record changes, and the old file is deleted only after a successful save and when no other vehicle references it. Failed saves clean up the newly created file. Cleanup accepts only generated paths inside the vehicle upload directory; bundled SVG illustrations are preserved. Missing photos use the generic illustration across lists, details, dashboard and sale selection.
+Uploads are publicly served static assets and excluded from Git. Back up both the database and upload directory. A process crash between filesystem and database operations can leave an orphan file; no automatic orphan sweep is provided.
 
-**Demo persistence:** image files survive server restarts, but the in-memory vehicle records reset, leaving unreferenced uploads. No automatic orphan sweep deletes them. For MySQL, persist the relative image path, commit the record change before deleting the old file, roll back new files on failure, and back up both database and upload storage. Failed filesystem cleanup is logged and may require later maintenance.
-
-## Structure
+## Architecture
 
 ```text
-app.py                         Local development entry point
-config.py                      Branding and Flask configuration
-app/
-  __init__.py                  Application factory, template globals, errors
-  models/entities.py           Framework-independent Vehicle dataclass
-  repositories/demo.py         Seed data and process-local persistence adapter
-  services/vehicle_photos.py   Validated upload, image resolution and safe cleanup
-  services/sales.py            Sale invariants and coordinated record creation
-  routes/web.py                Routes, validation, authentication and RBAC hooks
-  templates/
-    base.html                  Shared application shell
-    components/                Icons, cards, badges, shell, alerts, pagination
-    shared/                    Data-driven list and record form templates
-    auth/, dashboard/, vehicles/, customers/, sales/
-    invoices/, reports/, roles/, errors/
-  static/
-    css/                       Tokens, base, shell, components, forms, tables,
-                               dashboard and responsive/print rules
-    js/                        Theme, shared UI, SVG chart and sale stepper
-    images/                    Local brand, line-icon sprite, vehicle illustrations
-tests/test_vehicle_photos.py    Photo lifecycle, validation and failure tests
-tests/test_application.py      Route, service and workflow integration tests
+app.py                         Local entry point
+config.py                      Environment/session/photo configuration
+app/database.py                Connection ownership, transactions, safe DB errors
+app/models/entities.py         Decimal money and SaleAmounts domain object
+app/repositories/entities.py   EntityRepository and eight concrete repositories
+app/repositories/mysql.py      Repository facade, SQL lists/history/analytics
+app/services/auth.py          AuthService and UserService
+app/services/inventory.py     InventoryService
+app/services/sales.py         Atomic SalesService
+app/services/vehicle_photos.py VehiclePhotoService and safe upload lifecycle
+app/routes/web.py              Existing URLs, validation, auth/RBAC boundaries
+app/templates/                 Existing Jinja shell and module pages
+app/static/                    CSS tokens, responsive/print rules, JS, images
+database/                     Schema, lookup seeds, editable sample data, setup
+tests/                        Application/photo/MySQL/setup verification
 ```
 
-Lists and forms deliberately share templates rather than copying table, filter, validation and form markup for each module. `RESOURCES` and `FIELDS` in `routes/web.py` define page-specific data and fields. Filters and pagination use ordinary GET requests and preserve URL query parameters. Forms use POST/redirect/GET after success. Core lists/forms work without JavaScript; the sale stepper requires JavaScript.
+Repositories encapsulate parameterized SQL and map schema columns to the existing template dictionary contract. Services coordinate business operations through the shared Database transaction abstraction. One connection is reused per Flask request and closed on teardown; standalone operations own and close their connections. List queries use SQL WHERE/ORDER BY/LIMIT/OFFSET with eight rows per page. The obsolete in-memory repository has been removed.
 
-## Design and theme system
+The dark/light theme, responsive sidebar, accessible forms, shared lists, confirmation dialogs and sale stepper are preserved. `variables.css` contains design tokens. The sale stepper and photo removal confirmation require JavaScript.
 
-`variables.css` owns the color, spacing, radius, shadow and layout tokens. The `data-theme` attribute on `<html>` selects dark or light values. `theme.js` runs before CSS, restores `autovault-theme` from localStorage, defaults to dark and updates button labels. It tolerates disabled localStorage. Chart colors inherit CSS tokens, including labels, grid and tooltip.
+## Tests
 
-Sidebar state is saved under `autovault-sidebar`. Tablet widths use a compact rail, mobile uses a drawer with focus containment and Escape dismissal, and tables scroll within their cards. Keyboard focus indicators, skip navigation, semantic labels, native dialog confirmation, reduced-motion rules, text status labels, empty states, server validation, toasts and submit loading states are shared.
-
-Rename `Config.BRAND` and replace the local brand mark for rebranding. Dealer identity text in `components/sidebar.html` and invoice details are intentionally separate from the product name.
-
-## Backend integration
-
-The current adapter is **not MySQL**, is not durable, and must not be run in multiple server processes. `SalesService` holds a process lock while validating an active customer and available vehicle, creating the completed sale, marking the vehicle sold, recording STOCK_OUT and generating one invoice. Duplicate and concurrent attempts to sell the same vehicle are rejected. This models the required transaction, but a database transaction must replace the lock for production.
-
-Recommended next step: implement MySQL repositories behind the same `all/get/save` contract and add migrations for `users`, `roles`, `permissions`, `user_roles`, `role_permissions`, `vehicles`, `customers`, `stock_movements`, `sales` and `invoices`.
-
-Then:
-
-1. Wrap sale completion in a MySQL transaction; lock the selected vehicle row, recheck availability, add unique constraints on vehicle VIN/code, sale vehicle and invoice sale ID, and roll back all effects on failure.
-2. Replace demo sign-in with hashed passwords, secure account creation/reset, session hardening and login rate limiting. Keep CSRF protection. Configure a real secret, HTTPS cookies and production WSGI server.
-3. Replace the single `user.role` demo field with user-role and role-permission joins. `can()` and `require()` are the integration boundaries. Routes already enforce permissions on the server; navigation visibility is an additional UX layer.
-4. Store immutable customer/vehicle snapshots on completed invoices, add audit records, database-level monetary decimals, and transaction-safe uniqueness checks. Currently invoice descriptions/contact details are read from demo records; sold vehicle identity and price edits are restricted.
-5. Add dealership legal details, currency/tax policy, notification delivery, and any pending/cancelled sale lifecycle the project needs. Current new sales complete immediately; pending/cancelled badge and filter styles are prepared.
-
-No speculative SQL schema or empty architecture directories were added: the frontend foundation is ready for the project's final MySQL design without introducing a competing schema.
-
-## Verification
+Run the complete suite against the local MySQL 8 server on port 3307:
 
 ```powershell
+$env:RUN_MYSQL_TESTS='1'
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
 ```
 
-Tests cover all module routes and their local links/assets, authentication and CSRF, role restrictions, vehicle/customer/user forms, empty/filter/pagination states, date validation, stock transitions, invalid sales, coordinated sale/invoice creation, and concurrent double-sale rejection.
+Each database test creates a unique `autovault_test_*` database and drops only that database. The account needs CREATE/DROP database privileges. Tests refuse other ports and non-MySQL-8 servers. Without the opt-in flag, live database tests are **skipped**, not verified.
 
-Browser verification covered desktop and mobile layouts, light/dark persistence, sidebar collapse and drawer navigation, customer-step validation, all sale steps, confirmation, success and invoice rendering. Manual print CSS review ensures the white invoice remains separate from the application shell. A physical printer was not exercised.
+Coverage includes routes/assets, login/CSRF/RBAC, CRUD, filtering/pagination, inactive records, unique fields, SQL-injection-shaped input, exact Decimal totals, stock transitions, concurrent double-sale attempts, transaction rollback, seed repeat/conflicts, photo validation/lifecycle/commit failure and fresh-app persistence.
 
-Photo tests additionally cover all supported formats, disguised content, size limits, path safety, shared images, confirmed removal, replacement, persistence and partial-write failures, filename collisions, and fallback rendering.
+See [implementation and verification report](docs/mysql-integration-report.md) for actual results and remaining limitations. This is a university development application: production deployment would additionally require a WSGI server, HTTPS, restricted database account, login rate limiting, backup/restore procedures and immutable invoice identity snapshots.
+
+## IGNITE branding
+
+The supplied transparent logo is `app/static/images/branding/ignite-logo.png`. It appears in the sidebar, login, invoice and favicon. The collapsed/tablet navigation rail uses a compact I; mobile login has its own small wordmark.
+
+Internal `autovault-theme`/`autovault-sidebar` keys and their JavaScript helper remain for saved-preference compatibility. The development password, database-test prefix, connection context/seed-lock names and existing repository folder also retain their old internal names; changing branding does not reset accounts, preferences or database records. See [branding verification](docs/ignite-branding.md).
