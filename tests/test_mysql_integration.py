@@ -12,7 +12,7 @@ class MySQLIntegrationTests(MySQLTestCase):
         self.assertEqual(fresh.get('vehicles',vehicle['id'])['color'],'Persistent blue')
         client=app.test_client(); client.get('/login')
         with client.session_transaction() as session: csrf=session['csrf_token']
-        response=client.post('/login',data={'csrf_token':csrf,'username':'katsrieng','password':'autovault-demo'})
+        response=client.post('/login',data={'csrf_token':csrf,'username':'katsrieng','password':'Ignite1234'})
         self.assertEqual(response.status_code,302)
         self.assertEqual(client.get('/').status_code,200)
 
@@ -45,12 +45,12 @@ class MySQLIntegrationTests(MySQLTestCase):
         from app.services.auth import AuthService
         repo=create_app(self.app_config()).extensions['repository']
         auth=AuthService(repo)
-        self.assertIsNotNone(auth.authenticate('katsrieng','autovault-demo'))
+        self.assertIsNotNone(auth.authenticate('katsrieng','Ignite1234'))
         self.assertIsNone(auth.authenticate('katsrieng',"' OR 1=1 --"))
         self.assertNotIn('password_hash',repo.get('users',1))
-        self.assertNotEqual(repo.users.credentials('katsrieng')['password_hash'],'autovault-demo')
+        self.assertNotEqual(repo.users.credentials('katsrieng')['password_hash'],'Ignite1234')
         repo.save('users',{'status':'INACTIVE'},1)
-        self.assertIsNone(auth.authenticate('katsrieng','autovault-demo'))
+        self.assertIsNone(auth.authenticate('katsrieng','Ignite1234'))
         manager=repo.role_repository.get_by_name('Manager')['role_id']
         repo.db.execute('INSERT INTO user_roles (user_id,role_id) VALUES (%s,%s)',(3,manager))
         self.assertIn('reports.view',repo.users.permissions(3))

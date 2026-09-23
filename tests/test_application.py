@@ -61,7 +61,7 @@ class ApplicationTests(MySQLTestCase):
         with self.client.session_transaction() as session:
             self.csrf = session['csrf_token']
         self.assertIn('incorrect', self.post('/login', {'username': 'katsrieng', 'password': 'wrong'}).text)
-        self.assertEqual(self.post('/login', {'username': 'katsrieng', 'password': 'autovault-demo'}).status_code, 302)
+        self.assertEqual(self.post('/login', {'username': 'katsrieng', 'password': 'Ignite1234'}).status_code, 302)
         self.assertEqual(self.client.post('/vehicles/new', data={}).status_code, 403)
 
     def test_sales_staff_permissions_enforced_on_server(self):

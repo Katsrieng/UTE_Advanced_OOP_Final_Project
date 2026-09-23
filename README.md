@@ -46,9 +46,9 @@ Fresh seeding creates 20 vehicles, 12 fictional customers, three users/roles, ei
 
 | Username | Role | Development-only password |
 | --- | --- | --- |
-| `katsrieng` | Admin | `autovault-demo` |
-| `sopanha` | Manager | `autovault-demo` |
-| `sovanara` | Sales Staff | `autovault-demo` |
+| `katsrieng` | Admin | `Ignite1234` |
+| `sopanha` | Manager | `Ignite1234` |
+| `sovanara` | Sales Staff | `Ignite1234` |
 
 Passwords are hashed before database insertion. New accounts require their own password. Sample definitions are centralized in the clearly marked lists at the top of `database/seed.py`; role/permission lookup data is in `database/seed.sql`. Rerunning setup preserves existing records, passwords and edited grants. Inconsistent existing sample sales cause a clear conflict error and roll back the seed. No automatic startup reset exists. The local verification also leaves clearly named `VERIFY-*` vehicle/customer records and their completed sale.
 

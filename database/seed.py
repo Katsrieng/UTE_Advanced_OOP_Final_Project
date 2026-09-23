@@ -18,9 +18,9 @@ from werkzeug.security import generate_password_hash
 # Database insertion logic begins later in this file.
 # ============================================================
 DEMO_USERS = [
-    dict(username='katsrieng', legacy_username='alex', full_name='Katsrieng', email='katsrieng@example.com', role='Admin', password='autovault-demo'),
-    dict(username='sopanha', legacy_username='jordan', full_name='Chan Sopanha', email='sopanha@example.com', role='Manager', password='autovault-demo'),
-    dict(username='sovanara', legacy_username='sam', full_name='Sovanara', email='sovanara@example.com', role='Sales Staff', password='autovault-demo'),
+    dict(username='katsrieng', legacy_username='alex', full_name='Katsrieng', email='katsrieng@example.com', role='Admin', password='Ignite1234'),
+    dict(username='sopanha', legacy_username='jordan', full_name='Chan Sopanha', email='sopanha@example.com', role='Manager', password='Ignite1234'),
+    dict(username='sovanara', legacy_username='sam', full_name='Sovanara', email='sovanara@example.com', role='Sales Staff', password='Ignite1234'),
 ]
 # All contacts and identifiers below are fictional presentation records.
 DEMO_CUSTOMERS = [

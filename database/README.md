@@ -42,9 +42,9 @@ Tables use InnoDB and utf8mb4. Money uses DECIMAL. Unique constraints cover user
 
 Edit the clearly marked lists at the top of `seed.py`. It supplies three roles/users, 20 vehicles, 12 fictional customers, eight completed sales with derived invoices and stock-out records, plus stock-in history and adjustments. Existing SVG placeholders need no manual upload. Relative date offsets apply at first insertion; reruns do not move dates.
 
-Development logins: `katsrieng` (Admin), `sopanha` (Manager), `sovanara` (Sales Staff). Development-only password: `autovault-demo`. Passwords are hashed with Werkzeug before insertion.
+Development logins: `katsrieng` (Admin), `sopanha` (Manager), `sovanara` (Sales Staff). Development-only password: `Ignite1234`. Passwords are hashed with Werkzeug before insertion.
 
-Normal seeding skips existing users/customers/vehicles/sales by stable unique codes and usernames. It preserves existing passwords and grants; deleting a role's permission in the application will not be undone by rerunning the seed. Foreign key IDs are looked up, not assumed. A conflict rolls back the seed rather than replacing business history. Import `seed.sql` only into the selected application database; the Python commands select it automatically.
+Normal seeding skips existing users/customers/vehicles/sales by stable unique codes and usernames. It preserves existing passwords and grandonets; deleting a role's permission in the application will not be undone by rerunning the seed. Foreign key IDs are looked up, not assumed. A conflict rolls back the seed rather than replacing business history. Import `seed.sql` only into the selected application database; the Python commands select it automatically.
 
 To intentionally rebuild development records after editing the sample definitions:
 
