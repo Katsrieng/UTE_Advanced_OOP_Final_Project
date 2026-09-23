@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+
+{% from 'components/macros.html' import icon, badge, vehicle_cell, heading, empty with context %}
+
+{% block content %}
+
+{% call heading(title, description) %}
+
+{% if create and can(create) %}
+<a class="btn primary" href="{{ url_for('web.form',resource=resource) }}">{{ icon('plus') }} {{ 'New Sale' if resource == 'sales' else 'Record Movement' if resource == 'inventory' else 'Add ' ~ singular }}</a>
+{% endif %}
+
+{% endcall %}
+
+{% if resource == 'vehicles' %}
+<div class="module-note">{{ icon('car') }} <span>One record. One vehicle. A complete view of your fleet.</span>
+<span>All prices in USD</span>
+</div>
+{% endif %}
+
+<section class="card list-card">
+<div class="card-heading">
+<div>
+<h2>{{ 'Stock movement history' if resource == 'inventory' else 'All ' ~ title|lower }}</h2>
+<p>{{ total }} {{ 'records' if resource == 'inventory' else title|lower }} in this view</p>
+</div>
+<span class="subtle-icon">{{ icon('filter') }}</span>
+</div>
+<form class="filter-bar" method="get" role="search">
+<div class="search-field">{{ icon('search') }}<input type="search" name="q" aria-label="Search {{ title|lower }}" placeholder="{{ 'Search name, phone, email or code…' if resource == 'customers' else 'Search ' ~ title|lower ~ '…' }}" value="{{ request.args.get('q','') }}">
+</div>
+{% if resource == 'vehicles' %}
+<select name="brand" aria-label="Filter by brand">
+<option value="">All brands</option>
+{% for b in brands %}
+<option {{ 'selected' if request.args.get('brand') == b }}>{{ b }}</option>
+{% endfor %}
+</select>
+<select name="year" aria-label="Filter by year">
+<option value="">All years</option>
+{% for year in years %}
+<option {{ 'selected' if request.args.get('year') == year|string }}>{{ year }}</option>
+{% endfor %}
+</select>
+{% endif %}
+
+{% if statuses %}
+<select name="status" aria-label="Filter by status">
+<option value="">All statuses</option>
+{% for status in statuses %}
+<option value="{{ status }}" {{ 'selected' if request.args.get('status') == status }}>{{ status|title }}</option>
+{% endfor %}
+</select>
+{% endif %}
+
+{% if resource == 'inventory' %}
+<select name="movement" aria-label="Filter by movement">
+<option value="">All movements</option>
+{% for movement in ['STOCK_IN','STOCK_OUT','ADJUSTMENT'] %}
+<option value="{{ movement }}" {{ 'selected' if request.args.get('movement') == movement }}>{{ movement|replace('_',' ')|title }}</option>
+{% endfor %}
+</select>
+{% endif %}
+
+{% if resource in ['inventory','sales','invoices'] %}
+<label class="inline-date">From<input type="date" name="from" value="{{ request.args.get('from','') }}">
+</label>
+<label class="inline-date">To<input type="date" name="to" value="{{ request.args.get('to','') }}">
+</label>
+{% endif %}
+<button class="btn secondary">Apply</button>
+<a class="btn ghost" href="{{ url_for('web.listing',resource=resource) }}">Reset</a>
+</form>
+
+{% if rows %}
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+{% for column in columns %}
+<th scope="col">{{ column }}</th>
+{% endfor %}
+</tr>
+</thead>
+<tbody>
+{% for row in rows %}
+<tr>
+
+{% if resource == 'vehicles' %}
+<td>
+<a href="{{ url_for('web.details',resource=resource,item_id=row.id) }}">{{ vehicle_cell(row) }}</a>
+</td>
+<td class="mono">{{ row.vin }}</td>
+<td>{{ row.year }}</td>
+<td class="numeric">{{ row.price|money }}</td>
+<td>{{ badge(row.status) }}</td>
+
+{% elif resource == 'customers' %}
+<td>
+<div class="person-cell">
+<span class="avatar">{{ row.name[0] }}{{ row.name.split()[-1][0] }}</span>
+<a href="{{ url_for('web.details',resource=resource,item_id=row.id) }}">
+<strong>{{ row.name }}</strong>
+<small>{{ row.code }}</small>
+</a>
+</div>
+</td>
+<td>{{ row.phone }}</td>
+<td>{{ row.email }}</td>
+<td>{{ row.purchases }}</td>
+<td>{{ badge(row.status) }}</td>
+
+{% elif resource == 'sales' %}
+<td>
+<a class="text-link" href="{{ url_for('web.details',resource=resource,item_id=row.id) }}">{{ row.code }}</a>
+</td>
+<td>{{ row.customer.name }}</td>
+<td>{{ vehicle_cell(row.vehicle) }}</td>
+<td>{{ row.staff }}</td>
+<td class="nowrap">{{ row.date }}</td>
+<td class="numeric">{{ row.total|money }}</td>
+<td>{{ badge(row.status) }}</td>
+
+{% elif resource == 'invoices' %}
+<td>
+<a class="invoice-code" href="{{ url_for('web.details',resource=resource,item_id=row.id) }}">{{ icon('file') }} {{ row.code }}</a>
+</td>
+<td>{{ row.customer.name }}</td>
+<td>{{ row.vehicle.brand }} {{ row.vehicle.model }}</td>
+<td>{{ row.date }}</td>
+<td class="numeric">{{ row.total|money }}</td>
+
+{% elif resource == 'inventory' %}
+<td class="nowrap">{{ row.date }}</td>
+<td>{{ vehicle_cell(row.vehicle) }}</td>
+<td>{{ badge(row.movement) }}</td>
+<td>{{ row.staff }}</td>
+<td>{{ row.reason }}</td>
+<td class="numeric">{{ '+' if row.quantity > 0 }}{{ row.quantity }}</td>
+
+{% elif resource == 'users' %}
+<td>
+<div class="person-cell">
+<span class="avatar">{{ row.name[0] }}</span>
+<strong>{{ row.name }}</strong>
+</div>
+</td>
+<td>{{ row.username }}</td>
+<td>
+<span class="role-label">{{ row.role }}</span>
+</td>
+<td>{{ badge(row.status) }}</td>
+{% endif %}
+
+{% if resource != 'inventory' %}
+<td>
+<details class="dropdown row-dropdown">
+<summary class="icon-button" aria-label="Actions for {{ row.get('code',row.get('name','record')) }}">{{ icon('more') }}</summary>
+<div class="dropdown-panel">
+{% if resource != 'users' %}
+<a href="{{ url_for('web.details',resource=resource,item_id=row.id) }}">{{ icon('eye') }} View details</a>
+{% endif %}
+
+{% if resource in ['vehicles','customers','users'] and can('users.manage' if resource == 'users' else resource ~ '.update') %}
+<a href="{{ url_for('web.form',resource=resource,item_id=row.id) }}">{{ icon('edit') }} Edit {{ singular|lower }}</a>
+{% endif %}
+
+{% if resource == 'vehicles' and can('inventory.create') and row.status != 'SOLD' %}
+<a href="{{ url_for('web.form',resource='inventory',vehicle_id=row.id) }}">{{ icon('box') }} Stock movement</a>
+<a href="{{ url_for('web.form',resource=resource,item_id=row.id) }}">{{ icon('shield') }} Change status</a>
+{% endif %}
+</div>
+</details>
+</td>
+{% endif %}
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% else %}
+{{ empty('No ' ~ title|lower ~ ' match your current filters.' if request.args else 'No ' ~ title|lower ~ ' yet.', 'Try adjusting your search or resetting the filters.' if request.args else 'Add your first record to get started.') }}
+{% endif %}
+
+{% include 'components/pagination.html' %}
+</section>
+{% if resource == 'users' %}
+<p class="helper-note">{{ icon('shield') }} Deactivate accounts to preserve the team member's historical transactions. Each account uses its own password.</p>
+{% endif %}
+
+{% endblock %}

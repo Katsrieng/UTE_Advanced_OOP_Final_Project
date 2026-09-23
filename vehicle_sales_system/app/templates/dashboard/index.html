@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% from 'components/macros.html' import icon, badge, vehicle_cell, vehicle_image, heading, chart_card, inventory_card with context %}
+
+{% block content %}
+
+{% call heading('Dashboard', 'A concise overview of inventory and sales performance.') %}
+<div class="heading-actions">
+<span class="date-chip">{{ icon('calendar') }} {{ today.strftime('%b %d, %Y') }}</span>
+{% if can('sales.create') %}
+<a class="btn primary" href="{{ url_for('web.form', resource='sales') }}">{{ icon('plus') }} New Sale</a>
+{% endif %}
+</div>
+{% endcall %}
+
+<div class="welcome-strip">
+<span>
+<i class="live-dot">
+</i> YOUR BUSINESS AT A GLANCE</span>
+<span>Welcome back, {{ user.name.split()[0] }}. Let's keep things moving.</span>
+</div>
+<div class="kpi-grid">
+{% for label, value, symbol, detail, cls in [('Total vehicles',total_vehicles,'car','Across your entire fleet','purple'),('Available vehicles',counts.AVAILABLE,'key','Ready for their next owner','green'),('Sold vehicles',counts.SOLD,'check','Successfully handed over','blue'),('Sales revenue',revenue|money,'wallet','All completed sales · USD','amber')] %}
+<section class="card kpi">
+<div class="kpi-top">
+<span>{{ label }}</span>
+<span class="icon-tile {{ cls }}">{{ icon(symbol) }}</span>
+</div>
+<strong>{{ value }}</strong>
+<div class="kpi-context">
+<span class="mini-line {{ cls }}">{{ icon('trend') }}</span>{{ detail }}</div>
+</section>
+{% endfor %}
+</div>
+<div class="dashboard-grid">{{ chart_card(chart,revenue) }}<section class="card featured">
+<div class="card-heading">
+<div>
+<span class="eyebrow">IN THE SPOTLIGHT</span>
+<h2>Featured vehicle</h2>
+</div>{{ icon('car') }}</div>
+{% if featured %}
+<div class="featured-image">
+<span class="vehicle-year">{{ featured.year }} COLLECTION</span>
+{{ vehicle_image(featured) }}
+{% if not vehicle_has_photo(featured) %}<span class="image-caption">Illustrative vehicle preview</span>{% endif %}
+</div>
+<div class="featured-info">
+<div class="row-between">
+<small>{{ featured.brand|upper }}</small>{{ badge(featured.status) }}</div>
+<h3>{{ featured.model }}</h3>
+<div class="vehicle-specs">
+<span>{{ icon('bolt') }} {{ featured.fuel }}</span>
+<span>{{ icon('gauge') }} {{ '{:,}'.format(featured.mileage) }} km</span>
+</div>
+<div class="featured-bottom">
+<strong>{{ featured.price|money }}</strong>
+<a class="btn secondary small" href="{{ url_for('web.details', resource='vehicles', item_id=featured.id) }}">View details {{ icon('arrow') }}</a>
+</div>
+</div>
+{% else %}
+<div class="empty-state">
+<h3>No available vehicles</h3>
+<p>Your next featured vehicle will appear here.</p>
+</div>
+{% endif %}
+</section>
+</div>
+<div class="dashboard-grid lower-grid">
+<section class="card recent-sales">
+<div class="card-heading">
+<div>
+<h2>Recent sales</h2>
+<p>The latest deals, all in one place</p>
+</div>
+<a class="text-link" href="{{ url_for('web.listing',resource='sales') }}">View all {{ icon('arrow') }}</a>
+</div>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>Vehicle</th>
+<th>Customer</th>
+<th>Amount</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+{% for sale in recent_sales %}
+<tr>
+<td>
+<a href="{{ url_for('web.details',resource='sales',item_id=sale.id) }}">{{ vehicle_cell(sale.vehicle) }}</a>
+</td>
+<td>{{ sale.customer.name }}<small>{{ sale.date }}</small>
+</td>
+<td class="numeric">{{ sale.total|money }}</td>
+<td>{{ badge(sale.status) }}</td>
+</tr>
+{% else %}
+<tr>
+<td colspan="4" class="empty-cell">No sales yet. Complete your first sale to see it here.</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+</section>{{ inventory_card(counts,total_vehicles) }}</div>
+
+{% endblock %}
+
+{% block page_js %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}" defer>
+</script>
+{% endblock %}

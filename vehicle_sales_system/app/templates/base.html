@@ -1,0 +1,68 @@
+{% from 'components/macros.html' import icon, csrf with context %}
+
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>
+{% block title %}
+{{ title }} · {{ brand }}
+{% endblock %}
+</title>
+<link rel="icon" href="{{ url_for('static', filename='images/branding/ignite-logo.png') }}" type="image/png">
+<script src="{{ url_for('static', filename='js/theme.js') }}">
+</script>
+{% for sheet in ['variables','base','layout','components','forms','tables','dashboard','responsive'] %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/' ~ sheet ~ '.css') }}">
+{% endfor %}
+
+{% block page_css %}
+
+{% endblock %}
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+{% include 'components/sidebar.html' %}
+<div class="drawer-overlay" hidden>
+</div>
+<div class="app-shell">
+{% include 'components/topbar.html' %}
+<main id="main" tabindex="-1">
+{% include 'components/alerts.html' %}
+
+{% block content %}
+
+{% endblock %}
+<footer class="app-footer">
+<span>{{ brand }} <span class="footer-divider">/</span> Vehicle Inventory & Sales Management</span>
+<span>
+<i class="live-dot">
+</i> Workspace · USD</span>
+</footer>
+</main>
+</div>
+<div id="toasts" class="toasts" role="status" aria-live="polite">
+</div>
+<dialog id="confirmation" aria-labelledby="confirmation-title" aria-describedby="confirmation-message">
+<form method="dialog">
+<div class="dialog-symbol">{{ icon('shield') }}</div>
+<h2 id="confirmation-title">Confirm action</h2>
+<p id="confirmation-message">
+</p>
+<div class="form-actions">
+<button class="btn secondary" value="cancel">Cancel</button>
+<button class="btn primary" value="confirm">Confirm</button>
+</div>
+</form>
+</dialog>
+<script src="{{ url_for('static', filename='js/main.js') }}" defer>
+</script>
+{% block page_js %}
+
+{% endblock %}
+</body>
+</html>
+
