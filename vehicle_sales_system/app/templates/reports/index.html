@@ -26,7 +26,7 @@
 <div class="alert error" role="alert">{{ error }}</div>
 {% endif %}
 <div class="kpi-grid">
-{% for label,value,detail,symbol in [('Sales revenue',revenue|money,'Selected period','wallet'),('Completed sales',sales_count,'Selected period','check'),('Available inventory',counts.AVAILABLE,'Current stock · not date filtered','car'),('Stock movements',movements|length,'Selected period','box')] %}
+{% for label,value,detail,symbol in [('Sales revenue',revenue|money,'Selected period','wallet'),('Completed sales',sales_count,'Selected period','check'),('Available inventory',counts.AVAILABLE,'Current stock · not date filtered','car'),('Stock movements',movement_count,'Selected period','box')] %}
 <section class="card kpi">
 <div class="kpi-top">
 <span>{{ label }}</span>
@@ -47,7 +47,7 @@
 </div>
 <div class="movement-summary">
 {% for kind in ['STOCK_IN','STOCK_OUT','ADJUSTMENT'] %}
-<div>{{ badge(kind) }}<strong>{{ movements|selectattr('movement','equalto',kind)|list|length }}</strong>
+<div>{{ badge(kind) }}<strong>{{ movement_counts[kind] }}</strong>
 <span>recorded movements</span>
 </div>
 {% endfor %}

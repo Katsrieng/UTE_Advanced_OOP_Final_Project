@@ -1,12 +1,14 @@
 import os
+from pathlib import Path
+from dotenv import load_dotenv
 
+load_dotenv(Path(__file__).resolve().parent / '.env')
 
 class Config:
-    SECRET_KEY = os.environ.get('SECRET_KEY', 'autovault-local-demo-only')
-    BRAND = 'AutoVault'
-    DEMO_MODE = True
+    SECRET_KEY = os.environ.get('SECRET_KEY')
+    BRAND = 'IGNITE'
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
+    SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE', '0') == '1'
     MAX_PHOTO_BYTES = 5 * 1024 * 1024
-    # Allow multipart overhead; the photo service enforces the file's 5 MB limit.
     MAX_CONTENT_LENGTH = 6 * 1024 * 1024

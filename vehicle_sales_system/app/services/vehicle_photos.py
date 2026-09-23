@@ -102,7 +102,13 @@ class VehiclePhotoService:
 
     def remove_unreferenced(self, image):
         path = self.upload_path(image)
-        if path is None or any(v.get('image') == image for v in self.repository.all('vehicles')):
+        if path is None:
+            return
+        try:
+            if self.repository.image_referenced(image):
+                return
+        except Exception:
+            logging.getLogger(__name__).warning('Photo cleanup postponed because reference lookup failed.')
             return
         try:
             path.unlink(missing_ok=True)
@@ -110,24 +116,31 @@ class VehiclePhotoService:
             logging.getLogger(__name__).warning('Could not clean an unreferenced vehicle photo: %s', image)
 
     def save_vehicle(self, values, item_id=None, upload=None, remove=False):
-        """Update the record before deleting its old image; rollback new files on failure."""
-        with self.repository.lock:
-            original = self.repository.get('vehicles', item_id) if item_id else None
-            old_image = original.get('image', 'sedan.svg') if original else 'sedan.svg'
-            new_image = None
-            values = dict(values)
-            values['image'] = old_image
-            if upload is not None and upload.filename:
-                new_image = self.save_upload(upload)
-                values['image'] = new_image
-            elif remove:
-                values['image'] = 'sedan.svg'
-            try:
+        """The database commit completes before any old photo is removed."""
+        values = dict(values)
+        new_image = self.save_upload(upload) if upload is not None and upload.filename else None
+        old_image = 'sedan.svg'
+        try:
+            with self.repository.transaction():
+                original = self.repository.get('vehicles', item_id, lock=True) if item_id else None
+                if item_id and not original:
+                    raise ValueError('Vehicle not found.')
+                old_image = original.get('image', 'sedan.svg') if original else 'sedan.svg'
+                if original and original['status'] == 'SOLD':
+                    protected = ('code', 'vin', 'brand', 'model', 'year', 'price', 'status')
+                    if any(key in values and values[key] != original[key] for key in protected):
+                        raise ValueError('Sold vehicle identity and price are preserved for invoice history.')
+                if not original and values.get('status') == 'SOLD':
+                    raise ValueError('Sold status is assigned by completing a sale.')
+                values['image'] = new_image or ('sedan.svg' if remove else old_image)
                 row = self.repository.save('vehicles', values, item_id)
-            except Exception as exc:
-                if new_image:
-                    self.remove_unreferenced(new_image)
-                raise PhotoError('The vehicle could not be saved. Your previous photo has been kept. Please try again.') from exc
-            if values['image'] != old_image:
-                self.remove_unreferenced(old_image)
-            return row
+        except Exception as exc:
+            if new_image:
+                self.remove_unreferenced(new_image)
+            # Never expose raw database errors to the vehicle form.
+            from app.database import PersistenceError
+            message = str(exc) if isinstance(exc, (PersistenceError, ValueError)) else 'The vehicle could not be saved. Your previous photo has been kept. Please try again.'
+            raise PhotoError(message) from exc
+        if values['image'] != old_image:
+            self.remove_unreferenced(old_image)
+        return row

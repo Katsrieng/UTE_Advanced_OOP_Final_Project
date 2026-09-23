@@ -32,7 +32,7 @@
 {% endif %}
 </label>
 {% if kind == 'select' %}
-<select id="{{ key }}" name="{{ key }}" {{ 'required' if required }} aria-describedby="{{ key }}-help" 
+<select id="{{ key }}" name="{{ key }}" {{ 'required' if required }} aria-describedby="{{ key }}-help"
 {% if key in errors %}
 aria-invalid="true"
 {% endif %}
@@ -48,7 +48,7 @@ aria-invalid="true"
 {% elif kind == 'textarea' %}
 <textarea id="{{ key }}" name="{{ key }}" rows="3" maxlength="250" {{ 'required' if required }} aria-describedby="{{ key }}-help">{{ values.get(key,'') }}</textarea>
 {% else %}
-<input id="{{ key }}" name="{{ key }}" type="{{ kind }}" value="{{ values.get(key,'') }}" {{ 'required' if required }} 
+<input id="{{ key }}" name="{{ key }}" type="{{ kind }}" value="{{ '' if kind == 'password' else values.get(key,'') }}" {{ 'required' if required }}
 {% if kind == 'number' %}
 min="{{ 1900 if key == 'year' else 0 }}" max="{{ 2100 if key == 'year' else 100000000 }}" step="{{ 1 if key == 'year' else '0.01' }}"
 {% endif %}
@@ -58,7 +58,7 @@ min="{{ 1900 if key == 'year' else 0 }}" max="{{ 2100 if key == 'year' else 1000
 {% else %}
  maxlength="250"
 {% endif %}
- aria-describedby="{{ key }}-help" 
+ aria-describedby="{{ key }}-help"
 {% if key in errors %}
 aria-invalid="true"
 {% endif %}
@@ -90,7 +90,7 @@ aria-invalid="true"
 {% endif %}
 <div class="aside-divider">
 </div>
-<small>Changes in this demo last until the server restarts.</small>
+<small>Changes are stored in the database and remain after restart.</small>
 </aside>
 </div>
 {% endblock %}

@@ -20,9 +20,12 @@ class LinkParser(HTMLParser):
                 self.links.add(value.split('#')[0])
 
 
-class ApplicationTests(unittest.TestCase):
+from mysql_support import MySQLTestCase
+
+class ApplicationTests(MySQLTestCase):
     def setUp(self):
-        self.app = create_app({'TESTING': True, 'SECRET_KEY': 'test-only'})
+        super().setUp()
+        self.app = create_app(self.app_config())
         self.client = self.app.test_client()
         self.repository = self.app.extensions['repository']
         self.client.get('/login')
@@ -57,8 +60,8 @@ class ApplicationTests(unittest.TestCase):
         self.client.get('/login')
         with self.client.session_transaction() as session:
             self.csrf = session['csrf_token']
-        self.assertIn('incorrect', self.post('/login', {'username': 'alex', 'password': 'wrong'}).text)
-        self.assertEqual(self.post('/login', {'username': 'alex', 'password': 'autovault-demo'}).status_code, 302)
+        self.assertIn('incorrect', self.post('/login', {'username': 'katsrieng', 'password': 'wrong'}).text)
+        self.assertEqual(self.post('/login', {'username': 'katsrieng', 'password': 'autovault-demo'}).status_code, 302)
         self.assertEqual(self.client.post('/vehicles/new', data={}).status_code, 403)
 
     def test_sales_staff_permissions_enforced_on_server(self):
@@ -68,6 +71,11 @@ class ApplicationTests(unittest.TestCase):
         self.assertEqual(self.post('/users/new', {'name': 'Unauthorized'}).status_code, 403)
         html = self.client.get('/').text
         self.assertNotIn('href="/users"', html)
+        self.as_user(2)
+        self.assertEqual(self.client.get('/reports').status_code, 200)
+        self.assertEqual(self.client.get('/inventory').status_code, 200)
+        self.assertEqual(self.client.get('/users').status_code, 403)
+        self.assertEqual(self.client.get('/roles').status_code, 403)
 
     def test_sale_creates_exactly_one_invoice_and_movement(self):
         counts = {key: len(self.repository.all(key)) for key in ('sales', 'invoices', 'inventory')}
@@ -86,21 +94,21 @@ class ApplicationTests(unittest.TestCase):
 
     def test_concurrent_duplicate_sale_is_rejected(self):
         service = SalesService(self.repository)
-        def complete():
+        def complete(actor):
             try:
-                service.complete(1, 1, 0, 'Test staff')
+                service.complete(actor, 1, 0, actor)
                 return True
             except ValueError:
                 return False
         with ThreadPoolExecutor(max_workers=2) as pool:
-            self.assertEqual(sorted(pool.map(lambda _: complete(), range(2))), [False, True])
+            self.assertEqual(sorted(pool.map(complete, (1, 2))), [False, True])
 
     def test_invalid_sale_does_not_change_records(self):
-        for vehicle, customer, discount in [(3, 1, '0'), (5, 1, '0'), (1, 999, '0'), (1, 1, '-1'), (1, 1, '999999'), (1, 1, 'NaN'), (1, 1, 'Infinity'), (1, 1, 'abc')]:
+        for vehicle, customer, discount in [(3, 1, '0'), (5, 1, '0'), (1, 999, '0'), (1, 12, '0'), (1, 1, '-1'), (1, 1, '999999'), (1, 1, 'NaN'), (1, 1, 'Infinity'), (1, 1, 'abc')]:
             response = self.post('/sales/new', {'customer_id': customer, 'vehicle_id': vehicle, 'discount': discount})
             self.assertEqual(response.status_code, 200)
             self.assertIn('role="alert"', response.text)
-        self.assertEqual(len(self.repository.all('sales')), 12)
+        self.assertEqual(len(self.repository.all('sales')), 8)
         self.assertEqual(self.repository.get('vehicles', 1)['status'], 'AVAILABLE')
 
     def test_vehicle_form_validates_and_saves(self):
@@ -118,7 +126,7 @@ class ApplicationTests(unittest.TestCase):
         customer = self.post('/customers/new', dict(code='CU-NEW', name='Demo Buyer', email='buyer@example.com', phone='555-0100', address='Demo address', status='ACTIVE'))
         self.assertEqual(customer.status_code, 302)
         self.assertIn('Demo Buyer', self.client.get(customer.location).text)
-        user = self.post('/users/new', dict(name='New Staff', username='newstaff', role='Sales Staff', status='ACTIVE'))
+        user = self.post('/users/new', dict(name='New Staff', username='newstaff', email='newstaff@example.com', password='test-password-123', role='Sales Staff', status='ACTIVE'))
         self.assertEqual(user.status_code, 302)
         self.assertEqual(self.repository.all('users')[-1]['role'], 'Sales Staff')
 
@@ -138,7 +146,9 @@ class ApplicationTests(unittest.TestCase):
         self.assertIn('Choose a valid start', self.client.get('/reports?period=custom&from=bad&to=bad').text)
         for path in ['/missing', '/vehicles/999', '/customers/999/edit', '/roles?role=missing']:
             self.assertEqual(self.client.get(path).status_code, 404)
-        self.repository.data['vehicles'] = []
+        with self.repository.transaction():
+            for table in ('invoices', 'sales', 'stock_movements', 'vehicles'):
+                self.repository.db.execute('DELETE FROM '+table)
         self.assertIn('No vehicles yet', self.client.get('/vehicles').text)
         self.assertIn('No available vehicles', self.client.get('/').text)
 
@@ -147,7 +157,7 @@ class ApplicationTests(unittest.TestCase):
         self.as_user(3)
         self.assertEqual(self.client.get('/sales/new').status_code, 403)
         self.as_user(1)
-        self.post('/users/3/edit', dict(name='Sam Taylor', username='sam', role='Sales Staff', status='INACTIVE'))
+        self.post('/users/3/edit', dict(name='Sovanara', username='sovanara', email='sovanara@example.com', role='Sales Staff', status='INACTIVE'))
         self.as_user(3)
         self.assertEqual(self.client.get('/').status_code, 403)
 

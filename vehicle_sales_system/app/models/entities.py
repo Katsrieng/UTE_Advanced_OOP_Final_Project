@@ -1,24 +1,25 @@
-"""Small domain objects; independent of Flask and the persistence adapter."""
-from dataclasses import dataclass, asdict
+"""Domain money rules shared by record and sales services."""
+from dataclasses import dataclass
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 
+def money(value):
+    try:
+        amount=Decimal(str(value))
+        if not amount.is_finite() or amount<0 or amount>Decimal('100000000'):
+            raise ValueError()
+        return amount.quantize(Decimal('0.01'),rounding=ROUND_HALF_UP)
+    except (InvalidOperation,ValueError,TypeError):
+        raise ValueError('Enter a valid non-negative amount within range.')
 
-@dataclass
-class Vehicle:
-    id: int
-    code: str
-    brand: str
-    model: str
-    year: int
-    color: str
-    vin: str
-    plate: str
-    purchase_price: float
-    price: float
-    status: str = 'AVAILABLE'
-    mileage: int = 0
-    fuel: str = 'Hybrid'
-    created: str = '2026-09-01'
-    image: str = 'sedan.svg'
-
-    def to_dict(self):
-        return asdict(self)
+@dataclass(frozen=True)
+class SaleAmounts:
+    price: Decimal
+    discount: Decimal
+    @classmethod
+    def calculate(cls,price,discount):
+        result=cls(money(price),money(discount))
+        if result.discount>result.price:
+            raise ValueError('Discount must be between zero and the selling price.')
+        return result
+    @property
+    def total(self): return self.price-self.discount
