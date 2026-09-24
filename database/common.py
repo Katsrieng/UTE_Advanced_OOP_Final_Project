@@ -31,7 +31,6 @@ def settings():
 
 
 def execute_script(connection, path, database=None):
-    # Project-owned plain SQL only: no routines, DELIMITER or quoted semicolons.
     sql = "\n".join(
         line
         for line in Path(path).read_text(encoding="utf-8-sig").splitlines()
@@ -50,7 +49,6 @@ def execute_script(connection, path, database=None):
 def create_schema(config=None):
     config = dict(config or settings())
     name = config.pop("database")
-    # Deliberately connect to the server WITHOUT database: it may not exist yet.
     with mysql.connector.connect(**config) as connection:
         execute_script(connection, ROOT / "database/schema.sql", name)
         connection.commit()

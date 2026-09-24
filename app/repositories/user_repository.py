@@ -18,7 +18,7 @@ class UserRepository(EntityRepository):
             super().projection
             + ",COALESCE((SELECT GROUP_CONCAT(r.role_name ORDER BY r.role_id SEPARATOR ', ') FROM user_roles ur JOIN roles r ON r.role_id=ur.role_id AND r.is_active=1 WHERE ur.user_id=t.user_id),'') AS role"
         )
-
+    
     def credentials(self, username):
         rows = self.db.query(
             "SELECT user_id,password_hash,is_active FROM users WHERE username=%s",

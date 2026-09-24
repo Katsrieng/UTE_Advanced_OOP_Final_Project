@@ -48,7 +48,7 @@ aria-invalid="true"
 {% elif kind == 'textarea' %}
 <textarea id="{{ key }}" name="{{ key }}" rows="3" maxlength="250" {{ 'required' if required }} aria-describedby="{{ key }}-help">{{ values.get(key,'') }}</textarea>
 {% else %}
-<input id="{{ key }}" name="{{ key }}" type="{{ kind }}" value="{{ '' if kind == 'password' else values.get(key,'') }}" {{ 'required' if required }}
+<input id="{{ key }}" name="{{ key }}" type="{{ kind }}" value="{{ '' if kind == 'password' or values.get(key) is none else values.get(key,'') }}" {{ 'required' if required }}
 {% if kind == 'number' %}
 min="{{ 1900 if key == 'year' else 0 }}" max="{{ 2100 if key == 'year' else 100000000 }}" step="{{ 1 if key == 'year' else '0.01' }}"
 {% endif %}

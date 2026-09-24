@@ -44,6 +44,8 @@ def validate_form(resource, item_id, original, options):
         for _, fields in FIELDS[resource]
         for key, _, _, _ in fields
     }
+    if resource == "vehicles" and values.get("plate", "").casefold() == "none":
+        values["plate"] = ""
     for _, fields in FIELDS[resource]:
         for key, label, kind, required in fields:
             if required and not values[key]:

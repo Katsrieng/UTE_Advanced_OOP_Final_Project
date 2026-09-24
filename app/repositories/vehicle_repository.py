@@ -25,6 +25,13 @@ class VehicleRepository(EntityRepository):
         fuel="fuel",
     )
 
+    def save(self, values, item_id=None):
+        values = dict(values)
+        if "plate" in values:
+            plate = (values["plate"] or "").strip()
+            values["plate"] = None if not plate or plate.casefold() == "none" else plate
+        return super().save(values, item_id)
+
     def references_image(self, image):
         return bool(
             self.db.query(

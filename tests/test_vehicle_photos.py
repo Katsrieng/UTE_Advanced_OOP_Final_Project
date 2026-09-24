@@ -101,21 +101,48 @@ class VehiclePhotoTests(MySQLTestCase):
         self.assertEqual(self.repo.all("vehicles")[-1]["image"], "sedan.svg")
         self.assertEqual(self.uploaded_files(), [])
 
+    def test_blank_plate_stays_null_through_edit_and_validation(self):
+        response = self.post("/vehicles/new", self.fields())
+        self.assertEqual(response.status_code, 302)
+        vehicle = self.repo.all("vehicles")[-1]
+        item_id = vehicle["id"]
+        self.assertIsNone(vehicle["plate"])
+        for plate in ("", "  ", "None", " none "):
+            with self.subTest(plate=plate):
+                page = self.client.get(f"/vehicles/{item_id}/edit")
+                self.assertRegex(page.text, r'id="plate"[^>]*value=""')
+                fields = dict(self.fields(vehicle), plate=plate, purchase_price=0)
+                invalid = self.post(f"/vehicles/{item_id}/edit", dict(fields, brand=""))
+                self.assertEqual(invalid.status_code, 200)
+                self.assertRegex(invalid.text, r'id="plate"[^>]*value=""')
+                self.assertRegex(invalid.text, r'id="purchase_price"[^>]*value="0.00"')
+                saved = self.post(f"/vehicles/{item_id}/edit", fields)
+                self.assertEqual(saved.status_code, 302)
+                self.assertIsNone(self.repo.get("vehicles", item_id)["plate"])
+                self.assertIn("Not assigned", self.client.get(f"/vehicles/{item_id}").text)
+        for plate in (None, "None", " "):
+            self.repo.save("vehicles", {"plate": plate}, item_id)
+            self.assertIsNone(self.repo.get("vehicles", item_id)["plate"])
+        self.repo.save("vehicles", {"plate": "1A-1234"}, item_id)
+        self.assertEqual(self.repo.get("vehicles", item_id)["plate"], "1A-1234")
+
     def test_create_with_each_supported_format(self):
-        for i, format in enumerate(("PNG", "JPEG", "WEBP")):
-            with self.subTest(format=format):
+        for i, (format, filename) in enumerate(
+            (("PNG", "car.png"), ("JPEG", "car.jpg"), ("JPEG", "car.jpeg"), ("WEBP", "car.webp"))
+        ):
+            with self.subTest(format=format, filename=filename):
                 fields = dict(
                     self.fields(),
                     code=f"PHOTO-{i}",
                     vin=f"PHOTO{i:012}",
-                    photo=self.image(format),
+                    photo=self.image(format, filename),
                 )
                 response = self.post("/vehicles/new", fields)
                 self.assertEqual(response.status_code, 302)
                 vehicle = self.repo.all("vehicles")[-1]
                 self.assertRegex(
                     vehicle["image"],
-                    r"^uploads/vehicles/vehicle_[a-f0-9]{32}\.(png|jpg|webp)$",
+                    r"^uploads/vehicles/vehicle_[a-f0-9]{32}\.(png|jpe?g|webp)$",
                 )
                 with Image.open(self.root / vehicle["image"]) as image:
                     self.assertEqual(image.format, format)

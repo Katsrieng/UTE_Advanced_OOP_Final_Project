@@ -35,7 +35,9 @@
     input.removeAttribute('aria-invalid');
     const file = input.files[0];
     if (!file) { restore(); return; }
-    if (!/\.(jpe?g|png|webp)$/i.test(file.name) || (file.type && !['image/jpeg', 'image/png', 'image/webp'].includes(file.type))) {
+    // Browser MIME metadata is inconsistent (for example image/x-png on Windows).
+    // Decode below for preview; the server still verifies actual format and content.
+    if (!/\.(jpe?g|png|webp)$/i.test(file.name)) {
       reject('Choose a JPG, JPEG, PNG or WebP photo.'); return;
     }
     if (file.size > 5 * 1024 * 1024) {
