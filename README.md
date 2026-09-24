@@ -6,7 +6,7 @@ Flask, Jinja, responsive CSS and vanilla JavaScript with **MySQL persistence**. 
 
 ## Windows setup
 
-Prerequisites: Python 3.11+ and MySQL 8.0.16+ (verified with MySQL 8.0.46). This computer uses **localhost:3307**, database **VehicleSalesDB**, user **root**. Do not use XAMPP MariaDB on port 3306.
+Prerequisites: Python 3.11+ and MySQL 8.0.16+ (verified with MySQL 8.0.46). Configure the MySQL host and port in .env according to the local environment
 
 Run from the project directory containing `app.py`:
 
