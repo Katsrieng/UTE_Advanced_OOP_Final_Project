@@ -19,7 +19,7 @@ class DatabaseUnavailable(RuntimeError):
 class Database:
     def __init__(self, config):
         self.config = dict(config, autocommit=True)
-        self._active = ContextVar("autovault_connection", default=None)
+        self._active = ContextVar("ignite_connection", default=None)
 
     @contextmanager
     def connection(self):

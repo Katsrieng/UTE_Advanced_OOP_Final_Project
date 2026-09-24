@@ -58,7 +58,7 @@ class SetupSafetyTests(unittest.TestCase):
                     host="localhost",
                     user="tester",
                     password="not-a-real-secret",
-                    database="autovault_test_setup",
+                    database="ignite_test_setup",
                 )
             )
         self.assertNotIn("database", connect.call_args.kwargs)
@@ -67,9 +67,9 @@ class SetupSafetyTests(unittest.TestCase):
             for call in connection.cursor.return_value.__enter__.return_value.execute.call_args_list
         ]
         self.assertIn(
-            "CREATE DATABASE IF NOT EXISTS `autovault_test_setup`", statements[0]
+            "CREATE DATABASE IF NOT EXISTS `ignite_test_setup`", statements[0]
         )
-        self.assertIn("USE `autovault_test_setup`", statements[1])
+        self.assertIn("USE `ignite_test_setup`", statements[1])
         self.assertEqual(
             sum("CREATE TABLE IF NOT EXISTS" in sql for sql in statements), 10
         )

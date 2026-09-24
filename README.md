@@ -122,7 +122,7 @@ $env:RUN_MYSQL_TESTS='1'
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
 ```
 
-Each database test creates a unique `autovault_test_*` database and drops only that database. The account needs CREATE/DROP database privileges. Tests refuse other ports and non-MySQL-8 servers. Without the opt-in flag, live database tests are **skipped**, not verified.
+Each database test creates a unique `ignite_test_*` database and drops only that database. The account needs CREATE/DROP database privileges. Tests refuse other ports and non-MySQL-8 servers. Without the opt-in flag, live database tests are **skipped**, not verified.
 
 Coverage includes routes/assets, login/CSRF/RBAC, CRUD, filtering/pagination, inactive records, unique fields, SQL-injection-shaped input, exact Decimal totals, stock transitions, concurrent double-sale attempts, transaction rollback, seed repeat/conflicts, photo validation/lifecycle/commit failure and fresh-app persistence.
 
@@ -132,4 +132,4 @@ See [implementation and verification report](docs/mysql-integration-report.md) f
 
 The supplied transparent logo is `app/static/images/branding/ignite-logo.png`. It appears in the sidebar, login, invoice and favicon. The collapsed/tablet navigation rail uses a compact I; mobile login has its own small wordmark.
 
-Internal `autovault-theme`/`autovault-sidebar` keys and their JavaScript helper remain for saved-preference compatibility. The development password, database-test prefix, connection context/seed-lock names and existing repository folder also retain their old internal names; changing branding does not reset accounts, preferences or database records. See [branding verification](docs/ignite-branding.md).
+Internal identifiers use `ignite-theme`, `ignite-sidebar`, `igniteStorage`, `ignite_connection`, `ignite_test_*`, and the `ignite_` seed-lock prefix. Browser preferences saved under the previous keys are not read; theme and sidebar preferences use their defaults until saved again. Accounts and database records are unchanged. See [branding verification](docs/ignite-branding.md).

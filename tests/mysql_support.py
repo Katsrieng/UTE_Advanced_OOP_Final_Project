@@ -19,7 +19,7 @@ class MySQLTestCase(unittest.TestCase):
         self.db_config = settings()
         if self.db_config["port"] != 3307:
             raise RuntimeError("This local test workflow requires MySQL port 3307.")
-        self.test_db = "autovault_test_" + uuid4().hex
+        self.test_db = "ignite_test_" + uuid4().hex
         self.db_config["database"] = self.test_db
         server = dict(self.db_config)
         server.pop("database")
@@ -40,7 +40,7 @@ class MySQLTestCase(unittest.TestCase):
         seed_database(self.db_config)
 
     def drop_owned_database(self):
-        assert self.test_db.startswith("autovault_test_") and len(self.test_db) == 47
+        assert self.test_db.startswith("ignite_test_") and len(self.test_db) == 44
         server = dict(self.db_config)
         server.pop("database")
         with mysql.connector.connect(**server) as cn:

@@ -58,7 +58,7 @@ To intentionally rebuild development records after editing the sample definition
 
 The Flask factory uses `MySQLRepository` exclusively. `.env` is loaded automatically; server environment variables take precedence. Application startup never creates, seeds or resets a database. Run setup explicitly before starting Flask. Database rows and relative photo paths persist across process restarts; back up both MySQL and `app/static/uploads/vehicles/`.
 
-Integration tests opt in with `RUN_MYSQL_TESTS=1`. They connect only to MySQL 8 on port 3307, create randomly named `autovault_test_*` databases and drop only those databases. The account needs CREATE/DROP database privileges for this test strategy. Never point tests at a production server.
+Integration tests opt in with `RUN_MYSQL_TESTS=1`. They connect only to MySQL 8 on port 3307, create randomly named `ignite_test_*` databases and drop only those databases. The account needs CREATE/DROP database privileges for this test strategy. Never point tests at a production server.
 
 ## Clean existing sample identifiers without a reset
 

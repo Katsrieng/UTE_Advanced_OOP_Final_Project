@@ -22,7 +22,7 @@
   }
   collapse?.addEventListener('click', () => {
     root.classList.toggle('sidebar-collapsed');
-    window.autoVaultStorage.set('autovault-sidebar', root.classList.contains('sidebar-collapsed') ? 'collapsed' : 'expanded');
+    window.igniteStorage.set('ignite-sidebar', root.classList.contains('sidebar-collapsed') ? 'collapsed' : 'expanded');
     syncCollapse();
   });
   syncCollapse();

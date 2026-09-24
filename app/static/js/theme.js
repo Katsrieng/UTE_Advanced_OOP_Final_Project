@@ -4,10 +4,10 @@
     get(key) { try { return localStorage.getItem(key); } catch { return null; } },
     set(key, value) { try { localStorage.setItem(key, value); } catch { /* Private mode remains usable. */ } }
   };
-  window.autoVaultStorage = storage;
-  const saved = storage.get('autovault-theme');
+  window.igniteStorage = storage;
+  const saved = storage.get('ignite-theme');
   document.documentElement.dataset.theme = saved === 'light' ? 'light' : 'dark';
-  if (storage.get('autovault-sidebar') === 'collapsed') document.documentElement.classList.add('sidebar-collapsed');
+  if (storage.get('ignite-sidebar') === 'collapsed') document.documentElement.classList.add('sidebar-collapsed');
   function syncButtons() {
     const dark = document.documentElement.dataset.theme === 'dark';
     document.querySelectorAll('.theme-toggle').forEach(button => {
@@ -23,7 +23,7 @@
     document.querySelectorAll('.theme-toggle').forEach(button => button.addEventListener('click', () => {
       const theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
       document.documentElement.dataset.theme = theme;
-      storage.set('autovault-theme', theme);
+      storage.set('ignite-theme', theme);
       syncButtons();
       document.dispatchEvent(new CustomEvent('themechange', { detail: { theme } }));
     }));

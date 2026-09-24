@@ -358,7 +358,7 @@ def seed_database(config=None):
                 cursor.execute(
                     "SELECT GET_LOCK(%s, 10) AS acquired",
                     (
-                        "autovault_"
+                        "ignite_"
                         + sha256(connection.database.encode()).hexdigest()[:48],
                     ),
                 )
