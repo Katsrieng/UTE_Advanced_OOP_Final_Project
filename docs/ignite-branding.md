@@ -1,10 +1,18 @@
-# IGNITE branding migration
+# IGNITE branding
 
-- Configuration and visible copy now use IGNITE: page titles, sidebar/dealership label, user help, footer, login, invoices and shared error templates. README and migration documentation headings were updated; the academic topic remains Vehicle Inventory and Sales Management System for SMEs.
-- Source logo: `../IGNITE_Logo.png`. Copied unchanged to `app/static/images/branding/ignite-logo.png`; RGBA alpha is present and corners are transparent. Old `mark.svg` was removed and its references replaced. Unrelated vehicle illustrations/uploads were preserved.
-- Files changed for branding: `config.py`, `app/routes/web.py`, `app/templates/base.html`, `app/templates/components/sidebar.html`, `app/templates/auth/login.html`, `app/templates/invoices/details.html`, `app/static/css/responsive.css`, `tests/test_vehicle_photos.py`, `database/seed.py`, `database/seed.sql`, README and docs. Existing seeded role descriptions were updated only where they exactly matched the old default; grants/accounts were unchanged.
-- CSS: 150px sidebar wordmark, 220px desktop login, 140px mobile login, 110px invoice (70px mobile/90px print), automatic height and contain sizing. Collapsed and tablet rail uses I. No shell redesign.
-- Internal identifiers now use `ignite-theme`/`ignite-sidebar`, `igniteStorage`, `ignite_test_*`, `ignite_connection`, and the `ignite_` seed-lock prefix. Previously saved browser preference keys are not read. Existing accounts and database records are unchanged.
-- Browser checks: dashboard, vehicles, customers, sales, invoices, reports, users and roles have IGNITE titles/copy and zero broken images. Desktop dark/light, collapsed sidebar, tablet rail, mobile drawer/login/invoice were inspected. Theme and collapsed state survived reload. Login succeeded with unchanged credentials. 403/404/500 templates were rendered directly and checked for IGNITE without old branding; no deliberate production error was introduced.
-- Invoice layout and print CSS verified; native print preview/physical printing remains unverified in the in-app browser.
-- Full MySQL suite passed: 46 tests. Final source search retains only the compatibility references above. Changes remain local, uncommitted and unpushed.
+Visible application branding uses IGNITE. The logo is stored at
+`app/static/images/branding/ignite-logo.png` and used by the sidebar, login,
+invoices and favicon.
+
+Internal identifiers use `ignite-theme`, `ignite-sidebar`, `igniteStorage`,
+`ignite_connection`, the `ignite_test_*` database prefix and the `ignite_` seed-lock
+prefix. Browser preferences stored under previous keys are not read; users can
+save their theme and sidebar preferences again. Accounts and database records
+are unaffected by these internal renames.
+
+Legacy sample identifier patterns remain in the migration utility and its tests
+because older databases may still need conversion. They are not branding for
+new records. See the [database instructions](../database/README.md).
+
+For current test commands, see the [project README](../README.md). Test results
+and counts should come from a fresh run rather than this branding document.

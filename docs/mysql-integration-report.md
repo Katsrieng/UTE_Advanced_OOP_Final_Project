@@ -1,26 +1,28 @@
-# IGNITE MySQL integration report
+# IGNITE MySQL integration
 
-Verified locally on 2026-09-23. Work remains in the existing Git-connected project; this backend update has not been committed or pushed.
+The application uses MySQL repositories with separate models, services and routes.
+Setup, credentials and full test commands are documented in the [project README](../README.md)
+and [database README](../database/README.md).
 
-1. **Architecture:** existing Flask/Jinja frontend now uses MySQLRepository, concrete repositories and business services. Database owns connection lifetime and explicit transactions; there is no ORM or runtime in-memory repository.
-2. **Files created:** `app/database.py`, `app/repositories/entities.py`, `app/repositories/mysql.py`, `app/services/auth.py`, `app/services/inventory.py`, standalone database-outage template, `database/{schema.sql,seed.sql,common.py,setup.py,seed.py,README.md}`, MySQL test support/integration/setup tests, audit/ledger/report documentation.
-3. **Important files modified:** application factory/config, web routes, money domain object, SalesService, VehiclePhotoService, login/shared/report templates, chart parsing, existing application/photo tests, requirements, environment example and README. Obsolete `app/repositories/demo.py` removed after successful integration.
-4. **Dependencies:** mysql-connector-python >=9.2,<10 (installed 9.7.0) and python-dotenv >=1.0,<2 (installed 1.2.3), alongside existing Flask/Pillow requirements.
-5. **Schema:** ten InnoDB/utf8mb4 tables: roles, permissions, role_permissions, users, user_roles, customers, vehicles, stock_movements, sales and invoices. Foreign keys restrict historical deletion; unique keys and CHECK constraints protect identity, status, quantities and money. MySQL manages timestamps.
-6. **Setup/seed:** explicit setup creates the configured database before selecting it, applies schema.sql and runs the Python/SQL seed. Central editable lists supply 20 vehicles, 12 customers, three users/roles, eight sales/invoices and 31 stock movements. Repeated setup was verified without duplicate rows or resetting edited grants. Existing sample-sale inconsistencies roll back with a useful error. Guarded `--reset` is development-only and never automatic.
-7. **Authentication:** active database users, Werkzeug password hashes, session user ID, logout clearing, no plaintext comparisons or password hashes in templates. New accounts require a password; blank password on edit preserves the hash.
-8. **RBAC:** active user-role-permission joins and permission union; routes enforce access independently of hidden navigation. Admin grants, self-access changes and the final active administrator are protected. No Assistant role was added.
-9. **Repositories:** EntityRepository base; UserRepository, RoleRepository, PermissionRepository, VehicleRepository, CustomerRepository, StockMovementRepository, SaleRepository and InvoiceRepository; MySQLRepository facade preserves template keys and provides SQL listings/analytics.
-10. **Services:** AuthService, UserService, InventoryService, SalesService and VehiclePhotoService encapsulate their operations. SaleAmounts encapsulates Decimal validation/calculation. No empty domain/service classes were added.
-11. **Vehicles/photos:** database CRUD, status/uniqueness validation, persistent relative image paths, supported image validation and fallback behavior. Old image cleanup follows commit; save/commit failure retains the old file and rolls back the path.
-12. **Customers:** durable create/edit, activation, query/search, profile and purchase history. Inactive customers are rejected for new sales.
-13. **Inventory:** persisted actor/vehicle relations, stock-in/out transitions and adjustment history. Quantities retain existing signed +1/-1/0 behavior. Vehicle registration sets its initial status; later explicit movements record physical transitions.
-14. **Sales:** READ COMMITTED transaction locks/revalidates user, customer and vehicle, validates Decimal discount, creates completed sale, marks SOLD, adds STOCK_OUT and creates invoice, then commits. Any required failure rolls back. Two independent users/customers competing for the same vehicle produce only one sale.
-15. **Invoices:** unique number and unique sale relation guarantee one invoice per sale. Decimal totals and existing print-oriented template are retained.
-16. **Dashboard/reports:** persisted SQL totals, monthly aggregation, recent sales and status/movement counts. SQL pagination/filtering uses bounded result pages. Browser showed 21 vehicles, nine sales and $280,900 all-time revenue after the verification sale; the 30-day report showed five sales/$145,300.
-17. **Security:** parameterized user values, identifier whitelists, CSRF, field lengths aligned with schema, active-account checks, required session secret, HttpOnly/SameSite cookies and sanitized database errors. `.env`, virtual environment and runtime uploads are ignored. Local DB_PASSWORD scan found no occurrence in tracked or unignored repository content; password was neither printed nor committed.
-18. **Tests:** existing application/photo tests adapted to disposable real MySQL databases; new setup, authentication, multiple-role, Decimal, persistence, seed conflict/idempotency, rollback, concurrency, outage and column-length coverage. Photo commit failure explicitly tested. Tests create/drop only unique ignite_test_* databases on MySQL 8 port 3307.
-19. **Results:** complete suite: **46 tests passed in 84.756 seconds**, no skips. Added Manager-access and inactive-customer cases subsequently passed in a focused rerun of the two affected tests. Git diff whitespace check passed after cleanup. No disposable test databases remained. Independent static review found no unresolved important issues in the final fixes.
-20. **Manual/direct verification:** browser login, vehicle creation with uploaded generated image, edit color without losing image, customer creation, inventory adjustment, guided sale/confirmation, invoice and reports succeeded. Sale SAL-000009/invoice INV-000009 total $24,900. Direct SQL confirmed SOLD, correct customer link, exactly one stock-out and one invoice with equal totals. Stopped Flask and started a new process; browser reload confirmed invoice, customer, vehicle/photo, stock history and totals survived. MySQL identifies itself as **8.0.46, port 3307**. Setup rerun preserved records. No browser warnings/errors were reported. Local final counts: 21 vehicles, 13 customers, three users, nine sales/invoices and 33 movements (baseline plus clearly named verification records).
-21. **Limits:** Print Invoice was clicked and invoice/print CSS inspected, but the in-app browser exposed no native print preview; physical printing remains unverified. Invoice identities still read current related records rather than immutable snapshots. Existing single-role editor replaces role assignments even though authorization supports multiple roles. No sale cancellation, notification delivery, login rate limiting, production WSGI deployment or orphan-file sweep was added. Schema initialization is additive, not a migration engine for incompatible existing tables. Back up MySQL and upload storage together. The retained development credentials/demo labels are intentional sample-data UI, not in-memory storage.
-22. **Teammate setup:** from the project root, create `.venv`, install `requirements.txt`, copy `.env.example` only on a fresh clone, set credentials/random SECRET_KEY, run `database/setup.py`, then `app.py`. Exact PowerShell commands and test opt-in are in [README](../README.md) and [database README](../database/README.md). This machine's running preview is on http://127.0.0.1:5002; default app.py uses port 5000.
+## Verification
+
+Run the complete suite with `RUN_MYSQL_TESTS=1`. Tests use disposable `ignite_test_*`
+databases on MySQL 8, port 3307. Without that flag, integration tests are skipped.
+Use the current test output for counts and results rather than historical totals.
+
+Coverage includes authentication, RBAC, persistent CRUD, vehicle photos, stock
+transitions, Decimal totals, sale/invoice atomicity, concurrent double-sale
+protection, rollback, seed idempotency, identifier migration and restart persistence.
+
+## Remaining limitations
+
+- Physical printing requires verification in the target browser/printer environment.
+- Invoices read current related records rather than immutable identity snapshots.
+- The single-role editor replaces assignments, although authorization supports multiple roles.
+- Schema setup is additive, not a migration engine for incompatible existing tables.
+- Back up MySQL and uploaded photos together.
+- Production deployment needs a WSGI server, HTTPS, a restricted database account,
+  login rate limiting and tested backup/restore procedures.
+
+The legacy identifier migration remains necessary for databases containing old
+sample identifiers. Follow the database README before reseeding such databases.
