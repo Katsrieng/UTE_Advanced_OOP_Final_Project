@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% from 'components/macros.html' import csrf with context %}
+{% block content %}
+<section class="card success-card">
+  <h1>Confirm permanent deletion</h1>
+  <p>Permanently delete {{ row.brand }} {{ row.model }} ({{ row.code }})? This cannot be undone.</p>
+  <p>Only vehicles without sales, invoices, or stock/transaction history can be deleted. If history exists, deactivate the vehicle instead.</p>
+  <form method="post" action="{{ url_for('web.delete_vehicle', item_id=row.id) }}">
+    {{ csrf() }}
+    <div class="form-actions">
+      <a class="btn secondary" href="{{ url_for('web.details', resource='vehicles', item_id=row.id) }}">Cancel</a>
+      <button class="btn primary" type="submit" name="confirm_delete" value="yes">Permanently delete vehicle</button>
+    </div>
+  </form>
+</section>
+{% endblock %}

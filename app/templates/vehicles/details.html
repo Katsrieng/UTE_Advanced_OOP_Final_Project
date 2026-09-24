@@ -9,6 +9,9 @@
 {% if can('vehicles.update') %}
 <a class="btn secondary" href="{{ url_for('web.form',resource='vehicles',item_id=row.id) }}">{{ icon('edit') }} Edit vehicle</a>
 {% endif %}
+{% if can_delete_vehicle %}
+<a class="btn secondary" href="{{ url_for('web.delete_vehicle',item_id=row.id) }}">Permanently delete</a>
+{% endif %}
 </div>
 {% endcall %}
 <div class="detail-grid">

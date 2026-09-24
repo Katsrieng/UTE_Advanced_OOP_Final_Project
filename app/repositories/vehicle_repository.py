@@ -39,6 +39,20 @@ class VehicleRepository(EntityRepository):
             )
         )
 
+    def has_history(self, item_id):
+        return bool(
+            self.db.query(
+                "SELECT EXISTS(SELECT 1 FROM sales WHERE vehicle_id=%s) "
+                "OR EXISTS(SELECT 1 FROM stock_movements WHERE vehicle_id=%s) "
+                "OR EXISTS(SELECT 1 FROM invoices i JOIN sales s ON s.sale_id=i.sale_id "
+                "WHERE s.vehicle_id=%s) AS has_history",
+                (item_id, item_id, item_id),
+            )[0]["has_history"]
+        )
+
+    def delete(self, item_id):
+        self.db.execute("DELETE FROM vehicles WHERE vehicle_id=%s", (item_id,))
+
     def filter_options(self):
         return self.db.query(
             "SELECT DISTINCT brand,vehicle_year FROM vehicles ORDER BY brand,vehicle_year DESC"
