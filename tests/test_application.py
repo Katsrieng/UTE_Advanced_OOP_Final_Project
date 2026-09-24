@@ -90,7 +90,7 @@ class ApplicationTests(MySQLTestCase):
         )
         self.assertEqual(
             self.post(
-                "/login", {"username": "katsrieng", "password": "autovault-demo"}
+                "/login", {"username": "katsrieng", "password": "Ignite1234"}
             ).status_code,
             302,
         )

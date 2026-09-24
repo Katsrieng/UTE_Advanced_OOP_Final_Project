@@ -28,7 +28,7 @@ DEMO_USERS = [
         full_name="Katsrieng",
         email="katsrieng@example.com",
         role="Admin",
-        password="autovault-demo",
+        password="Ignite1234",
     ),
     dict(
         username="sopanha",
@@ -36,7 +36,7 @@ DEMO_USERS = [
         full_name="Chan Sopanha",
         email="sopanha@example.com",
         role="Manager",
-        password="autovault-demo",
+        password="Ignite1234",
     ),
     dict(
         username="sovanara",
@@ -44,7 +44,7 @@ DEMO_USERS = [
         full_name="Sovanara",
         email="sovanara@example.com",
         role="Sales Staff",
-        password="autovault-demo",
+        password="Ignite1234",
     ),
 ]
 # All contacts and identifiers below are fictional presentation records.

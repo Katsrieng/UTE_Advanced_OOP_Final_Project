@@ -23,7 +23,7 @@ class MySQLIntegrationTests(MySQLTestCase):
             data={
                 "csrf_token": csrf,
                 "username": "katsrieng",
-                "password": "autovault-demo",
+                "password": "Ignite1234",
             },
         )
         self.assertEqual(response.status_code, 302)
@@ -72,14 +72,14 @@ class MySQLIntegrationTests(MySQLTestCase):
 
         repo = create_app(self.app_config()).extensions["repository"]
         auth = AuthService(repo)
-        self.assertIsNotNone(auth.authenticate("katsrieng", "autovault-demo"))
+        self.assertIsNotNone(auth.authenticate("katsrieng", "Ignite1234"))
         self.assertIsNone(auth.authenticate("katsrieng", "' OR 1=1 --"))
         self.assertNotIn("password_hash", repo.get("users", 1))
         self.assertNotEqual(
-            repo.users.credentials("katsrieng")["password_hash"], "autovault-demo"
+            repo.users.credentials("katsrieng")["password_hash"], "Ignite1234"
         )
         repo.save("users", {"status": "INACTIVE"}, 1)
-        self.assertIsNone(auth.authenticate("katsrieng", "autovault-demo"))
+        self.assertIsNone(auth.authenticate("katsrieng", "Ignite1234"))
         manager = repo.role_repository.get_by_name("Manager")["role_id"]
         repo.db.execute(
             "INSERT INTO user_roles (user_id,role_id) VALUES (%s,%s)", (3, manager)
