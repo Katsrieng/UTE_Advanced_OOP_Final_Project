@@ -1,4 +1,0 @@
-{% for category, message in get_flashed_messages(with_categories=true) %}
-<div class="alert {{ category }}" role="status" data-toast="{{ category }}">{{ message }}<button class="icon-button" data-dismiss aria-label="Dismiss message">×</button>
-</div>
-{% endfor %}

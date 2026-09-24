@@ -1,0 +1,42 @@
+{
+  "customers": {
+    "rows": 14,
+    "sha256": "8f958a8d6d88c101f7877135e7fd7b0cd6e840b63ce9b9ee27bc42493a29ee5b"
+  },
+  "invoices": {
+    "rows": 12,
+    "sha256": "6aa97691f195d44f16f2bbd48b98775c6f3e6d6285c8ac96ab7d2bca4db1aedf"
+  },
+  "permissions": {
+    "rows": 16,
+    "sha256": "667dbaa19e47526728abb981c7114f638d764ea1e85bdcde25033cc927171779"
+  },
+  "role_permissions": {
+    "rows": 37,
+    "sha256": "45292d2a9d7ebcbf619e9dab904fa6138779d5839f13ac1df93851dd945bfe01"
+  },
+  "roles": {
+    "rows": 3,
+    "sha256": "dfa2d37e2035ccc589cfc6678eb9d94e73e761bd89c497f9cf391133f02b655e"
+  },
+  "sales": {
+    "rows": 12,
+    "sha256": "afe669c5ca5e184835d757512b437056e46026d859438c0cc27cbfcd61cc00e6"
+  },
+  "stock_movements": {
+    "rows": 35,
+    "sha256": "6f057441f920b4ca03c8942dc6c4e6915968a08a62fefb6936c9589255643766"
+  },
+  "user_roles": {
+    "rows": 3,
+    "sha256": "95d338f1909269f9016bcc71d98434a8d569d0cc1344029f855baae5a8f07349"
+  },
+  "users": {
+    "rows": 3,
+    "sha256": "d3c8a7ff8526c2cdf4f0ce2c014d428500f3f0405d9c07ab5a1646471cd8a6d1"
+  },
+  "vehicles": {
+    "rows": 23,
+    "sha256": "85192a5601fa94e70c492f997aade78a55fc71e6eb1e04f01ca192bca514ca84"
+  }
+}

@@ -1,8 +1,0 @@
-{% extends 'base.html' %}
-{% block content %}
-<section class="card success-card">
-  <h1>Confirm photo removal</h1>
-  <p>The photo has not been removed. Return to Edit Vehicle and confirm Remove Photo to restore the default image. The vehicle itself will not be deleted.</p>
-  <div class="form-actions"><a class="btn primary" href="{{ url_for('web.form', resource='vehicles', item_id=item_id) }}">Return to vehicle</a></div>
-</section>
-{% endblock %}
