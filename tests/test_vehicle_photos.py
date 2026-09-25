@@ -289,13 +289,28 @@ class VehiclePhotoTests(MySQLTestCase):
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.mimetype, "image/png")
 
-    def test_missing_path_falls_back_server_side(self):
-        self.repo.save(
-            "vehicles", {"image": "uploads/vehicles/vehicle_" + "a" * 32 + ".png"}, 1
-        )
-        response = self.client.get("/vehicles/1")
-        self.assertIn("/static/images/vehicles/sedan.svg", response.text)
-        self.assertNotIn('src="/static/uploads/', response.text)
+    def test_default_and_missing_photos_use_one_fallback(self):
+        for image in (
+            "sedan.svg",
+            "suv.svg",
+            "",
+            "unknown.svg",
+            "uploads/vehicles/vehicle_" + "a" * 32 + ".png",
+        ):
+            with self.subTest(image=image):
+                self.repo.save("vehicles", {"image": image}, 1)
+                response = self.client.get("/vehicles/1")
+                self.assertEqual(response.status_code, 200)
+                self.assertIn(
+                    'src="/static/images/vehicles/white-sports-car.svg"', response.text
+                )
+                self.assertIn(
+                    'data-image-fallback="/static/images/vehicles/white-sports-car.svg"',
+                    response.text,
+                )
+                self.assertNotIn('src="/static/uploads/', response.text)
+                self.assertNotIn("/static/images/vehicles/sedan.svg", response.text)
+                self.assertNotIn("/static/images/vehicles/suv.svg", response.text)
 
     def test_oversized_upload_has_friendly_error_and_keeps_record(self):
         response = self.post(

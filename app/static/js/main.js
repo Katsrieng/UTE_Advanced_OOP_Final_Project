@@ -105,7 +105,7 @@
     const fallback = () => {
       if (image.dataset.fallback) return;
       image.dataset.fallback = 'true';
-      image.src = image.dataset.imageFallback || image.src.replace(/\/[^/]+$/, '/sedan.svg');
+      image.src = image.dataset.imageFallback || image.src.replace(/\/[^/]+$/, '/white-sports-car.svg');
       image.classList.remove('is-photo');
       if (image.alt) image.alt = 'Generic vehicle illustration';
     };

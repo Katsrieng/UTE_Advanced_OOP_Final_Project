@@ -478,7 +478,7 @@ def seed_database(config=None):
                                    (SELECT COUNT(*) FROM stock_movements m
                                     WHERE m.vehicle_id=s.vehicle_id AND m.user_id=s.user_id
                                       AND m.movement_type='STOCK_OUT' AND m.quantity=-1
-                                      AND m.movement_date=s.sale_date AND m.reason=%s) AS stockouts
+                                      AND m.movement_date=s.sale_date AND m.reason IN (%s, 'Vehicle sold')) AS stockouts
                             FROM sales s JOIN vehicles v ON v.vehicle_id=s.vehicle_id
                             JOIN customers c ON c.customer_id=s.customer_id
                             JOIN users u ON u.user_id=s.user_id

@@ -86,6 +86,41 @@ class IdentifierMigrationTests(MySQLTestCase):
             row[change["field"]] = change["new"]
         self.assertEqual(before, after)
         self.assertEqual(after["vehicles"][0]["vin"], fictional_vin(1))
+        self.assertTrue(
+            any(row["reason"] == "Vehicle sold" for row in after["stock_movements"])
+        )
+        from database.seed import seed_database
+
+        seed_database(self.db_config)
+        self.assertEqual(after, self.snapshot())
+
+    def test_reason_cleanup_preserves_custom_text_and_seed_repeat(self):
+        from database.seed import seed_database
+
+        with mysql.connector.connect(**self.db_config) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    "UPDATE stock_movements SET reason='Development seed: inspection completed' WHERE vehicle_id=1 AND movement_type='ADJUSTMENT'"
+                )
+                cursor.execute(
+                    "UPDATE stock_movements SET reason='VERIFY' WHERE vehicle_id=2 AND movement_type='STOCK_IN'"
+                )
+                cursor.execute(
+                    "UPDATE stock_movements SET reason='Customer requested DEMO inspection' WHERE vehicle_id=3 AND movement_type='STOCK_IN'"
+                )
+            connection.commit()
+        with TemporaryDirectory() as folder:
+            changes = migrate(self.db_config, apply=True, backup_dir=folder)
+        self.assertEqual(
+            {change["new"] for change in changes},
+            {"Inspection completed", "Inventory adjustment"},
+        )
+        rows = self.snapshot()["stock_movements"]
+        self.assertTrue(
+            any(row["reason"] == "Customer requested DEMO inspection" for row in rows)
+        )
+        seed_database(self.db_config)
+        self.assertEqual(rows, self.snapshot()["stock_movements"])
 
     def test_collision_rolls_back_without_touching_records(self):
         self.legacy_records()

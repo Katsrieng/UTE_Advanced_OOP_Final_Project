@@ -44,16 +44,13 @@ def build_plan(records):
                 )
             )
 
-    sample_vehicles = set()
     for row in records["vehicles"]:
         vin = row["vin"] or ""
         match = re.fullmatch(r"AVDEMO(\d{11})", vin)
         if match:
             change("vehicles", row, "vin", fictional_vin(int(match[1])))
-            sample_vehicles.add(row["vehicle_id"])
         elif re.fullmatch(r"AVVERIFY[A-Z0-9]{9}", vin):
             change("vehicles", row, "vin", fictional_vin(1000000 + row["vehicle_id"]))
-            sample_vehicles.add(row["vehicle_id"])
         plate = re.fullmatch(r"DEMO-(\d{4})", row["plate_number"] or "")
         if plate:
             change("vehicles", row, "plate_number", f"1A-{plate[1]}")
@@ -77,7 +74,7 @@ def build_plan(records):
                 and movement["movement_type"] == "STOCK_OUT"
                 and movement["reason"] == "Sale " + sale["sale_code"]
             ):
-                change("stock_movements", movement, "reason", "Sale " + code)
+                change("stock_movements", movement, "reason", "Vehicle sold")
 
     for row in records["invoices"]:
         match = re.fullmatch(r"INV-DEMO-(\d+)", row["invoice_number"])
@@ -88,9 +85,12 @@ def build_plan(records):
         "Development seed: received from supplier": "Received from supplier",
         "Development seed: returned to supplier": "Returned to supplier",
         "Development seed: inspection completed": "Inspection completed",
+        "Development seed: inventory adjustment": "Inventory adjustment",
+        "VERIFY": "Inventory adjustment",
+        "DEMO": "Inventory adjustment",
     }
     for row in records["stock_movements"]:
-        if row["vehicle_id"] in sample_vehicles and row["reason"] in reasons:
+        if row["reason"] in reasons:
             change("stock_movements", row, "reason", reasons[row["reason"]])
 
     # Check against untouched records too; never overwrite a conflicting identifier.

@@ -10,6 +10,9 @@
 <a class="btn secondary" href="{{ url_for('web.form',resource='customers',item_id=row.id) }}">{{ icon('edit') }} Edit customer</a>
 {% endif %}
 
+{% if can_delete_customer %}
+<a class="btn secondary" href="{{ url_for('web.delete_customer',item_id=row.id) }}">Permanently delete</a>
+{% endif %}
 {% endcall %}
 <div class="customer-grid">
 <section class="card customer-profile">

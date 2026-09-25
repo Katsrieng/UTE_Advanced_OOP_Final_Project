@@ -45,11 +45,7 @@ class VehiclePhotoService:
         path = self.upload_path(image)
         if path and path.is_file():
             return image
-        if image == "suv.svg":
-            return "images/vehicles/white-sports-car.svg"
-        if image == "sedan.svg":
-            return "images/vehicles/" + image
-        return "images/vehicles/sedan.svg"
+        return "images/vehicles/white-sports-car.svg"
 
     def has_photo(self, vehicle):
         return self.image_path(vehicle).startswith("uploads/vehicles/")

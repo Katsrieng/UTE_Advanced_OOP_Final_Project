@@ -26,7 +26,7 @@
 {% macro vehicle_image(v, css_class='', thumbnail=false) -%}
 <img class="vehicle-image {{ 'is-photo' if vehicle_has_photo(v) }} {{ css_class }}"
      src="{{ vehicle_image_url(v) }}"
-     data-image-fallback="{{ url_for('static', filename='images/vehicles/sedan.svg') }}"
+     data-image-fallback="{{ url_for('static', filename='images/vehicles/white-sports-car.svg') }}"
      alt="{{ '' if thumbnail else (v.get('brand', '') ~ ' ' ~ v.get('model', '') ~ (' vehicle photo' if vehicle_has_photo(v) else ' — generic vehicle illustration'))|trim }}"
      {% if thumbnail %}width="76" height="48" loading="lazy"{% endif %}>
 {%- endmacro %}
